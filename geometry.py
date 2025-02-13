@@ -1,3 +1,5 @@
+#coding:utf-8
+
 from __future__ import annotations
 import numpy as np
 import scipy
@@ -52,7 +54,7 @@ class Point2D:
         if isinstance(x, np.ndarray):
             self.p = x
         else:
-            self.p = np.array([x, y])
+            self.p = np.array([float(x), float(y)])
 
     def clean(self) -> Self:
         return Point2D(np.round(self.p, 3))
@@ -120,12 +122,12 @@ class Point2D:
 
 class Point:
 
-    def __init__(self, x=None, y: float=0.0, z: float=0.0):
+    def __init__(self, x: float | np.ndarray=0.0, y: float=0.0, z: float=0.0):
         if isinstance(x, np.ndarray):
             self.p = x
             self.p[3] = 1
         else:
-            self.p = np.array([x or 0.0, y, z, 1])
+            self.p = np.array([float(x), float(y), float(z), 1])
 
     def copy(self) -> Self:
         return Point(self.p.copy())
@@ -153,11 +155,11 @@ class Point:
             return Point(np.subtract(self.p, other))
 
     def __eq__(self, other: Point2D) -> bool:
-        return equal(self.x(), other.x()) \
-               and equal(self.y(), other.y()) \
-               and equal(self.z(), other.z())
+        return (equal(self.x(), other.x())
+                and equal(self.y(), other.y())
+                and equal(self.z(), other.z()))
 
-    def __ne__(self, other: Point2D) -> bool:
+    def __ne__(self, other: Point) -> bool:
         return not (self==other)
     
     def __mul__(self, other: float) -> Self:
@@ -186,6 +188,21 @@ class Point:
 
     def z(self) -> float:
         return self.p[2]
+
+    def replace_x(self, xx: float) -> Point:
+        result = self.copy()
+        result.p[0] = xx
+        return result
+
+    def replace_y(self, yy: float) -> Point:
+        result = self.copy()
+        result.p[1] = yy
+        return result
+
+    def replace_z(self, zz: float) -> Point:
+        result = self.copy()
+        result.p[2] = zz
+        return result
 
 #
 # Transform class - a matrix representing a 3D transformation consisting of
@@ -241,9 +258,18 @@ class Transform:
         return Transform(np.array([[c, -s, 0, 0], [s , c, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]))
 
 class Line:
-    def __init__(self, p0, p1):
+    def __init__(self, p0: Point, p1: Point):
         self.p0, self.p1 = p0, p1
 
     def length(self) -> float:
         return p0.dist(p1)
+
+    def along(self, where: float) -> Point:
+        return (self.p1 - self.p0) * where + self.p0
+
+    def bisect(self) -> Point:
+        return self.along(0.5)
+        
+
+    
 
