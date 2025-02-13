@@ -39,7 +39,8 @@ def included_angle(x0, y0, x1, y1, x2, y2) :
     return dacos((a2+b2-c2)/(2*sqrt(a2*b2)))
 
 def equal(x1: float, x2: float) -> bool:
-    return abs(x1 - x2) / (max(abs(x1), abs(x2)) or 1.0) < SMALL
+    diff = abs(x1 - x2)
+    return diff < SMALL or diff / (max(abs(x1), abs(x2)) or 1.0) < SMALL
 
 #
 # Point2D - represents a 2D point
@@ -47,11 +48,11 @@ def equal(x1: float, x2: float) -> bool:
 
 class Point2D:
 
-    def __init__(self, x=None, y: float=0.0):
+    def __init__(self, x: float | np.ndarray=0.0, y: float=0.0):
         if isinstance(x, np.ndarray):
             self.p = x
         else:
-            self.p = np.array([x or 0.0, y])
+            self.p = np.array([x, y])
 
     def clean(self) -> Self:
         return Point2D(np.round(self.p, 3))
@@ -113,7 +114,7 @@ class Point2D:
         return Point2D(dsin(theta), dcos(theta)) * r 
 
 #
-# Point class - reprersents a 3D point, with a fourth value, always 1, to
+# Point class - represents a 3D point, with a fourth value, always 1, to
 # facilitate computing transforms
 #
 

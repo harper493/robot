@@ -39,13 +39,12 @@ class QuadLeg(Leg):
 
     def get_angles(self, toe_pos: Point) -> LegAngles:
         cox = datan2(toe_pos.y(), -toe_pos.z())
-        result = self.get_femur_tibia(Point2D(toe_pos.x(), -toe_pos.z() * dcos(cox)))
+        result = self.get_femur_tibia(Point2D(toe_pos.x(), -toe_pos.z() / dcos(cox)))
         result.cox_angle = cox
         return result
 
     def get_toe_pos(self, angles: LegAngles) -> Point:
         t1 = self.get_toe_pos_2D(angles)
-        print(t1)
         h = t1.y()
-        return Point(t1.x(), h * dsin(angles.cox_angle), h * dcos(angles.cox_angle)) 
+        return Point(t1.x(), -h * dsin(angles.cox_angle), h * dcos(angles.cox_angle)) 
 
