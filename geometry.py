@@ -54,7 +54,7 @@ class Point2D:
         if isinstance(x, np.ndarray):
             self.p = x
         else:
-            self.p = np.array([float(x), float(y)])
+            self.p = np.array([float(x), float(y)], dtype=np.float64)
 
     def clean(self) -> Self:
         return Point2D(np.round(self.p, 3))
@@ -127,7 +127,7 @@ class Point:
             self.p = x
             self.p[3] = 1
         else:
-            self.p = np.array([float(x), float(y), float(z), 1])
+            self.p = np.array([float(x), float(y), float(z), 1.0], dtype=np.float64)
 
     def copy(self) -> Self:
         return Point(self.p.copy())
@@ -232,13 +232,57 @@ class Transform:
     def __neg__(self) -> Self:
         return Transform(linalg.inv(self.m))
 
+#
+# between - approximate interpolation (only suitable for small angles)
+#
+
+    def between(self, other: Transform, where: float) -> Transform:
+        return Transform(self.m * (1-where) + other.m * where)
+
+#
+# xlate - add translation (replacing existing translation)
+#
+
     def xlate(self, p: Point) -> Self:
         result = self.copy()
-        result.m[0][3] = p.x()
-        result.m[1][3] = p.y()
-        result.m[2][3] = p.z()
+        result.m[3][0] = p.x()
+        result.m[3][1] = p.y()
+        result.m[3][2] = p.z()
         return result
+
+#
+# add_xlate - modify existing translation
+#
         
+    def add_xlate(self, p: Point) -> Self:
+        result = self.copy()
+        result.m[3][0] += p.x()
+        result.m[3][1] += p.y()
+        result.m[3][2] += p.z()
+        return result
+#
+# replace_... - replace a single dimension of the translation
+#
+
+    def replace_x(self, xx: float) -> Transform:
+        result = self.copy()
+        result.m[3][0] = xx
+        return result
+
+    def replace_y(self, yy: float) -> Transform:
+        result = self.copy()
+        result.m[3][1] = yy
+        return result
+
+    def replace_z(self, zz: float) -> Transform:
+        result = self.copy()
+        result.m[3][2] = zz
+        return result
+
+#
+# xrot/yrot/zrot - create rotation in the corresponding axis
+#
+
     @staticmethod
     def xrot(angle: float) :
         c = dcos(angle)

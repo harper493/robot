@@ -28,12 +28,15 @@ class StepPhase(Enum):
     lift = 2
     drop = 3
     pose = 4
+    advance_1 = 5
+    advance_2 = 6
     
 class Leg:
 
-    def __init__(self, _number: int, _location: Point, _femur: float, _tibia: float,
+    def __init__(self, _number: int, _which: str, _location: Point, _femur: float, _tibia: float,
                  _servo_ids: ServoIds):
-        self.number, self.location, self.femur, self.tibia = _number, _location, _femur, _tibia
+        self.number, self.location, self.which = _number, _location, _which
+        self.femur, self.tibia = _femur, _tibia
         self.servo_ids = _servo_ids
         self.position = Point()
         self.start = Point()
@@ -54,36 +57,41 @@ class Leg:
         toe_offset = Point2D.from_polar(self.tibia, 90 - alpha)
         return (knee_pos + toe_offset).reflect_x()
 
-    def goto(self, target: Point) -> tuple[ServoAction]:
+    def goto(self, target: Point, actions: ServoActionList) -> None:
         angles = self.get_angles(target)
-        self.position = target
-        result = (
-            ServoAction(self.servo_ids.cox_servo, angles.cox_angle),
-            ServoAction(self.servo_ids.femur_servo, angles.femur_angle),
-            ServoAction(self.servo_ids.tibia_servo, angles.tibia_angle))
-        return result
+        actions.append(self.servo_ids.cox_servo, angles.cox_angle)
+        actions.append(self.servo_ids.femur_servo, angles.femur_angle)
+        actions.append(self.servo_ids.tibia_servo, angles.tibia_angle)
 
-    def step(self, phase: StepPhase, target: Point, height: float=0.0) -> tuple[ServoAction]:
+    def start_step(self, stride: Transform) -> None:
+        self.start = self.position
+        self.stride = (self.position @ stride) - self.position
+        self.half_stride = stride / 2
+        self.dest = self.position @ self.stride
+
+    def step(self, phase: StepPhase, actions: ServoActionList) -> None:
         match phase:
             case StepPhase.clear:
-                self.start = self.position
-                return self.goto(self.start.replace_z(self.position.z() + self.clear_height))
+                self.goto(self.start.replace_z(self.position.z() + self.clear_height))
             case StepPhase.lift:
-                p1 = (Line(self.start, target)
+                p1 = (Line(self.start, self.start @ stride)
                       .bisect()
                       .replace_z(self.start.z() + (height or Params.get("step_height"))))
-                return self.goto(p1)
+                self.goto(p1)
             case StepPhase.drop:
-                self.start = self.position
-                return self.goto(target.replace_z(target.z() + self.clear_height))
+                self.goto((self.dest).replace_z(self.dest.z() + self.clear_height))
             case StepPhase.pose:
-                return self.goto(target)
+                self.goto(self.dest)
+            case StepPhase.advance_1:
+                self.goto(self.start @ half_stride)
+            case StepPhase.advance_2:
+                self.goto(self.dest)
 
 class QuadLeg(Leg):
 
-    def __init__(self, _number: int, _position: Point, _femur: float, _tibia: float,
+    def __init__(self, _number: int, _which: str, _position: Point, _femur: float, _tibia: float,
                  _servo_ids: ServoIds):
-        super(QuadLeg, self).__init__(_number, _position, _femur, _tibia, _servo_ids)
+        super(QuadLeg, self).__init__(_number, _which, _position, _femur, _tibia, _servo_ids)
 
     def get_angles(self, toe_pos: Point) -> LegAngles:
         cox = datan2(toe_pos.y(), -toe_pos.z())
