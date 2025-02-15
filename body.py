@@ -12,7 +12,7 @@ from params import Params
 from servo_action import *
 from leg import *
 import itertools
-import logger
+from logger import Logger
 from collections import OrderedDict
 
 class Body:
@@ -24,7 +24,7 @@ class Body:
         self.legs: dict[str, Leg] = {}
         self.gaits = OrderedDict()
         self.cur_gait: list[tuple[str]] | None = None
-        self.step_iter = itertools.cycle(self.gaits.items())
+        self.step_iter = iter(itertools.cycle(self.gaits.items()))
         self.transform = Transform().replace_z(height or Params.get('default_height'))
 
     def add_leg(self, type: Leg, which: str) -> None:
@@ -39,28 +39,27 @@ class Body:
         tibia = Params.get(prefix+'tibia', True) or Params.get('tibia_length')
         self.legs[which] = type(len(self.legs), which, pos, femur, tibia, servos)
 
-    def add_gait(self, gname: str, descr: Iter[tuple[str]|str]) -> None:
+    def add_gait(self, gname: str, descr: str) -> None:
         gait = []
-        for d in descr:
-            if isinstance(d, str):
-                gait.append((self.legs[d],))
-            else:
-                for dd in d:
-                    gait.append(self.legs[dd])
+        for d in descr.split(','):
+            gait.append(tuple([ self.legs[dd] for dd in d.split('+') ]))
         self.gaits[gname] = gait
+        Logger.info(f'adding gait \'{gname}\': {descr}')
 
     def set_gait(self, gname: str) -> None:
-        self.cur_gait = gaits[gname]
-        self.step_iter = itertools.cycle(self.gaits[gname].items())
+        self.cur_gait = self.gaits[gname]
+        self.step_iter = iter(itertools.cycle(self.gaits[gname]))
+        self.step_iter = iter(itertools.cycle(self.gaits[gname]))
 
     def step(self, stride: Transform) -> None:
-        lift_legs = self.step_iter.next()
-        other_legs = [ ll for ll in self.legs if ll not in lift_legs ]
+        lift_legs = next(self.step_iter)
+        other_legs = [ ll for ll in self.legs.values() if ll not in lift_legs ]
         unstride = (-stride).replace_z(stride.z())
+        Logger.info(f'starting step at {self.position} \nstride {stride.get_xlate()} \nunstride {unstride.get_xlate()}')
         actions = ServoActionList()
-        for ll in self.lift_legs:
+        for ll in lift_legs:
             ll.start_step(stride)
-        for ll in self.other_legs:
+        for ll in other_legs:
             ll.start_step(unstride)
         for ll in lift_legs:
             ll.step(StepPhase.clear, actions)
@@ -71,13 +70,16 @@ class Body:
             ll.step(StepPhase.advance_1, actions)
         actions.exec()
         for ll in lift_legs:
-            ll.step(StepPhase.drop, actions, stride)
+            ll.step(StepPhase.drop, actions)
         for ll in other_legs:
             ll.step(StepPhase.advance_2, actions)
         actions.exec()
         for ll in lift_legs:
             ll.step(StepPhase.pose, actions)
         actions.exec()
+        Logger.info(f'body position {self.position}')
+        for ll in self.legs.values():
+            Logger.info(f'leg {ll.which} toe position {ll.end_step()}')
         self.position = self.position @ stride
                 
             

@@ -232,6 +232,12 @@ class Transform:
     def __neg__(self) -> Self:
         return Transform(linalg.inv(self.m))
 
+    def __mul__(self, other: Transform|float) -> Self:
+        return Transform(self.m * other)
+
+    def __truediv__(self, other: Transform|float) -> Self:
+        return Transform(self.m / other)
+
 #
 # between - approximate interpolation (only suitable for small angles)
 #
@@ -278,6 +284,22 @@ class Transform:
         result = self.copy()
         result.m[3][2] = zz
         return result
+#
+# get whole translation
+#
+    def get_xlate(self) -> Point:
+        return Point(self.x(), self.y(), self.z())
+#
+# extract individual dimensions of the translation
+#
+    def x(self) -> float:
+        return self.m[3][0]
+
+    def y(self) -> float:
+        return self.m[3][1]
+
+    def z(self) -> float:
+        return self.m[3][2]
 
 #
 # xrot/yrot/zrot - create rotation in the corresponding axis

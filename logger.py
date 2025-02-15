@@ -8,7 +8,9 @@ class Logger:
 
     def __init__(self):
         self.my_logger = logging.getLogger('')
-        logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
+        logging.basicConfig(format='%(levelname)s: %(message)s',
+                            level=logging.DEBUG,
+                            filename='log.txt')
 
     @staticmethod
     def info(text: str) -> None:

@@ -40,6 +40,7 @@ class Leg:
         self.servo_ids = _servo_ids
         self.position = Point()
         self.start = Point()
+        self.angles = LegAngles()
         self.clear_height = Params.get("clear_height")
 
     def get_femur_tibia(self, toe_pos: Point2D) -> LegAngles:
@@ -59,6 +60,7 @@ class Leg:
 
     def goto(self, target: Point, actions: ServoActionList) -> None:
         angles = self.get_angles(target)
+        self.angles = angles
         actions.append(self.servo_ids.cox_servo, angles.cox_angle)
         actions.append(self.servo_ids.femur_servo, angles.femur_angle)
         actions.append(self.servo_ids.tibia_servo, angles.tibia_angle)
@@ -67,25 +69,28 @@ class Leg:
         self.start = self.position
         self.stride = (self.position @ stride) - self.position
         self.half_stride = stride / 2
-        self.dest = self.position @ self.stride
+        self.dest = self.position + self.stride
 
     def step(self, phase: StepPhase, actions: ServoActionList) -> None:
         match phase:
             case StepPhase.clear:
-                self.goto(self.start.replace_z(self.position.z() + self.clear_height))
+                self.goto(self.start.replace_z(self.position.z() + self.clear_height), actions)
             case StepPhase.lift:
-                p1 = (Line(self.start, self.start @ stride)
+                p1 = (Line(self.start, self.dest)
                       .bisect()
-                      .replace_z(self.start.z() + (height or Params.get("step_height"))))
-                self.goto(p1)
+                      .replace_z(self.start.z() + (Params.get("step_height"))))
+                self.goto(p1, actions)
             case StepPhase.drop:
-                self.goto((self.dest).replace_z(self.dest.z() + self.clear_height))
+                self.goto((self.dest).replace_z(self.dest.z() + self.clear_height), actions)
             case StepPhase.pose:
-                self.goto(self.dest)
+                self.goto(self.dest, actions)
             case StepPhase.advance_1:
-                self.goto(self.start @ half_stride)
+                self.goto(self.start @ self.half_stride, actions)
             case StepPhase.advance_2:
-                self.goto(self.dest)
+                self.goto(self.dest, actions)
+
+    def end_step(self) -> Position:
+        return self.get_toe_pos(self.angles)
 
 class QuadLeg(Leg):
 

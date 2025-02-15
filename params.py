@@ -34,6 +34,7 @@ defaults = {
     "leg_rr_x" : -90,
     "leg_rr_y" : -50,
     "leg_rr_z" : 0,
+    "gait_default" : "fl,rr,fr,rl"
     }
 
 class Params:
@@ -80,8 +81,8 @@ class Params:
         return result
 
     @staticmethod
-    def __iter__():
-        for i in Params.theParams.items():
+    def enumerate():
+        for i in Params.the_params.values.items():
             yield i
     
 Params.the_params = Params('parameters.txt')
