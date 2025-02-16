@@ -15,6 +15,10 @@ import itertools
 from logger import Logger
 from collections import OrderedDict
 
+named_postures = {
+    'stand' : Transform(x=1.0, z=-2.5)
+    }
+
 class Body:
 
     def __init__(self, height: float=0.0):
@@ -24,8 +28,9 @@ class Body:
         self.legs: dict[str, Leg] = {}
         self.gaits = OrderedDict()
         self.cur_gait: list[tuple[str]] | None = None
-        self.step_iter = iter(itertools.cycle(self.gaits.items()))
-        self.transform = Transform().replace_z(height or Params.get('default_height'))
+        self.step_iter = None
+        self.height = Params.get('default_height')
+        self.prev_stride = 0.0
 
     def add_leg(self, type: Leg, which: str) -> None:
         prefix = f'leg_{which}_'
@@ -48,39 +53,61 @@ class Body:
 
     def set_gait(self, gname: str) -> None:
         self.cur_gait = self.gaits[gname]
-        self.step_iter = iter(itertools.cycle(self.gaits[gname]))
-        self.step_iter = iter(itertools.cycle(self.gaits[gname]))
+        self.step_iter = iter(itertools.cycle(self.cur_gait))
 
-    def step(self, stride: Transform) -> None:
+    def set_named_posture(self, pname: str) -> None:
+        self.posture = named_postures[pname]
+        actions = ServoActionList()
+        for ll in self.legs.values():
+            pos = self.posture.get_xlate()
+            ll.set_rest_position(pos)
+            ll.goto(pos, actions)
+        actions.exec()
+
+    def set_body_height(self, height: float) -> None:
+        if height != self.height:
+            actions = ServoActionList()
+            delta = Point(0, 0, -(height - self.height))
+            for ll in self.legs.values():
+                ll.move_by(delta, actions)
+            actions.exec()
+            self.height = height
+            
+    def get_step_count(self) -> int:
+        return len(self.cur_gait)
+
+    def step(self, stride_tfm: Transform, height: float) -> None:
+        stride = stride_tfm.get_xlate()
         lift_legs = next(self.step_iter)
         other_legs = [ ll for ll in self.legs.values() if ll not in lift_legs ]
-        unstride = (-stride).replace_z(stride.z())
-        Logger.info(f'starting step at {self.position} \nstride {stride.get_xlate()} \nunstride {unstride.get_xlate()}')
+        unstride = (-stride).replace_z(stride.z()) / (self.get_step_count() - 1)
+        dest = stride / 2
+        Logger.info(f'starting step at {self.position}')
+        Logger.info(f'stride {stride} unstride {unstride}')
         actions = ServoActionList()
         for ll in lift_legs:
-            ll.start_step(stride)
-        for ll in other_legs:
-            ll.start_step(unstride)
+            ll.start_step(dest + ll.rest_position, height)
         for ll in lift_legs:
             ll.step(StepPhase.clear, actions)
         actions.exec()
         for ll in lift_legs:
             ll.step(StepPhase.lift, actions)
         for ll in other_legs:
-            ll.step(StepPhase.advance_1, actions)
+            ll.move_by(unstride, actions)
         actions.exec()
         for ll in lift_legs:
             ll.step(StepPhase.drop, actions)
         for ll in other_legs:
-            ll.step(StepPhase.advance_2, actions)
+            ll.move_by(unstride, actions)
         actions.exec()
         for ll in lift_legs:
             ll.step(StepPhase.pose, actions)
         actions.exec()
+        self.position = self.position + stride
         Logger.info(f'body position {self.position}')
         for ll in self.legs.values():
-            Logger.info(f'leg {ll.which} toe position {ll.end_step()}')
-        self.position = self.position @ stride
+            ll.end_step()
+            Logger.info(f'leg {ll.which} toe position {ll.position}')
                 
             
                     

@@ -10,12 +10,16 @@ from dataclasses import dataclass
 from enum import Enum
 from params import Params
 from servo_action import ServoAction
+from logger import Logger
 
 @dataclass
 class LegAngles:
     cox_angle: float = 0.0
     femur_angle: float = 0.0
     tibia_angle: float = 0.0
+
+    def __str__(self) -> str:
+        return f'cox {round(self.cox_angle, 1)} femur {round(self.femur_angle, 1)} tibia {round(self.tibia_angle, 1)}'
 
 @dataclass
 class ServoIds:
@@ -28,13 +32,11 @@ class StepPhase(Enum):
     lift = 2
     drop = 3
     pose = 4
-    advance_1 = 5
-    advance_2 = 6
     
 class Leg:
 
     def __init__(self, _number: int, _which: str, _location: Point, _femur: float, _tibia: float,
-                 _servo_ids: ServoIds):
+                 _servo_ids: ServoIds, _rest_position: Point = Point()):
         self.number, self.location, self.which = _number, _location, _which
         self.femur, self.tibia = _femur, _tibia
         self.servo_ids = _servo_ids
@@ -42,10 +44,16 @@ class Leg:
         self.start = Point()
         self.angles = LegAngles()
         self.clear_height = Params.get("clear_height")
+        self.rest_position = _rest_position
+
+    def set_rest_position(self, pos: Point) -> None:
+        self.rest_position = pos
 
     def get_femur_tibia(self, toe_pos: Point2D) -> LegAngles:
         result = LegAngles()
         h = toe_pos.length()
+        if h > self.tibia + self.femur:
+            raise ValueError(f'leg.get_femur_tibia: impossible position {toe_pos}')
         alpha = toe_pos.angle()
         beta = cosine_rule(h, self.femur, self.tibia)
         result.femur_angle = beta - alpha
@@ -59,38 +67,43 @@ class Leg:
         return (knee_pos + toe_offset).reflect_x()
 
     def goto(self, target: Point, actions: ServoActionList) -> None:
-        angles = self.get_angles(target)
-        self.angles = angles
-        actions.append(self.servo_ids.cox_servo, angles.cox_angle)
-        actions.append(self.servo_ids.femur_servo, angles.femur_angle)
-        actions.append(self.servo_ids.tibia_servo, angles.tibia_angle)
+        try:
+            self.angles = self.get_angles(target)
+        except ValueError as exc:
+            Logger.error(f"leg '{self.which}' target{target} ({exc})")
+            raise exc
+        Logger.info(f"goto leg' {self.which}' target{target} angles {self.angles}")
+        actions.append(self.servo_ids.cox_servo, self.angles.cox_angle)
+        actions.append(self.servo_ids.femur_servo, self.angles.femur_angle)
+        actions.append(self.servo_ids.tibia_servo, self.angles.tibia_angle)
+        self.position = target
 
-    def start_step(self, stride: Transform) -> None:
+    def start_step(self, dest: Point, height: float) -> None:
         self.start = self.position
-        self.stride = (self.position @ stride) - self.position
-        self.half_stride = stride / 2
-        self.dest = self.position + self.stride
+        self.height = height
+        self.dest = dest
 
     def step(self, phase: StepPhase, actions: ServoActionList) -> None:
         match phase:
             case StepPhase.clear:
-                self.goto(self.start.replace_z(self.position.z() + self.clear_height), actions)
+                self.goto(self.start.replace_z(self.start.z() + self.clear_height), actions)
             case StepPhase.lift:
                 p1 = (Line(self.start, self.dest)
                       .bisect()
-                      .replace_z(self.start.z() + (Params.get("step_height"))))
+                      .replace_z(self.start.z() + self.height))
+                Logger.info(f'p1 {p1} start {self.start} dest {self.dest}')
                 self.goto(p1, actions)
             case StepPhase.drop:
                 self.goto((self.dest).replace_z(self.dest.z() + self.clear_height), actions)
             case StepPhase.pose:
                 self.goto(self.dest, actions)
-            case StepPhase.advance_1:
-                self.goto(self.start @ self.half_stride, actions)
-            case StepPhase.advance_2:
-                self.goto(self.dest, actions)
 
-    def end_step(self) -> Position:
-        return self.get_toe_pos(self.angles)
+    def end_step(self) -> Point:
+        self.position = self.get_toe_pos(self.angles)
+
+    def move_by(self, delta: Point, actions: ServoActionList) -> None:
+        Logger.info(f"move_by leg '{self.which}' start {self.position} delta {delta}")
+        self.goto(self.position + delta, actions)
 
 class QuadLeg(Leg):
 
@@ -100,7 +113,11 @@ class QuadLeg(Leg):
 
     def get_angles(self, toe_pos: Point) -> LegAngles:
         cox = datan2(toe_pos.y(), -toe_pos.z())
-        result = self.get_femur_tibia(Point2D(toe_pos.x(), -toe_pos.z() / dcos(cox)))
+        try:
+            result = self.get_femur_tibia(Point2D(toe_pos.x(), -toe_pos.z() / dcos(cox)))
+        except ValueError as exc:
+            print(f'{exc} toe_pos {toe_pos}')
+            raise exc
         result.cox_angle = cox + 90
         return result
 

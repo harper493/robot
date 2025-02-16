@@ -1,16 +1,22 @@
 #coding:utf-8
 
 import logging
+import datetime
+import os
 
 class Logger:
 
     the_logger = None
 
-    def __init__(self):
+    def __init__(self, filename: str='log.txt'):
+        try:
+            os.remove(filename)
+        except:
+            pass
         self.my_logger = logging.getLogger('')
         logging.basicConfig(format='%(levelname)s: %(message)s',
                             level=logging.DEBUG,
-                            filename='log.txt')
+                            filename=filename)
 
     @staticmethod
     def info(text: str) -> None:
@@ -31,7 +37,7 @@ class Logger:
     @staticmethod
     def init() -> None:
         Logger.the_logger = Logger()
-        Logger.info("Logger initialised")
+        Logger.info(f"Logger initialised at {datetime.datetime.now()}")
         
 
         

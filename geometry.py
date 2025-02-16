@@ -32,7 +32,10 @@ def dist2(x0: float, y0: float, x1: float, y1: float) -> float:
     return dx*dx + dy*dy
 
 def cosine_rule(l1: float, l2: float, opposite: float) -> float:
-    return dacos((l1*l1 + l2*l2 - opposite*opposite) / (2*l1*l2))
+    result = dacos((l1*l1 + l2*l2 - opposite*opposite) / (2*l1*l2))
+    if result < -360:
+        print(f'cosine_rule {l1} {l2} {opposite}')
+    return result
 
 def included_angle(x0, y0, x1, y1, x2, y2) :
     a2 = dist2(x0, y0, x1, y1)
@@ -99,7 +102,7 @@ class Point2D:
     def angle(self) -> float:
         return datan2(self.x(), self.y())
 
-    def reflect_x(self) -> Self:
+    def reflect_x(self) -> Point:
         return Point2D(self.x(), -self.y())
 
     def reflect_y(self) -> Self:
@@ -112,7 +115,7 @@ class Point2D:
         return np.sum(np.square(self - other).p)
 
     @staticmethod
-    def from_polar(r: float, theta: float) -> float:
+    def from_polar(r: float, theta: float) -> Self:
         return Point2D(dsin(theta), dcos(theta)) * r 
 
 #
@@ -211,14 +214,37 @@ class Point:
 
 class Transform:
 
-    def __init__(self, other: type[None|np.ndarray]=None):
+    def __init__(self, other: type[None|np.ndarray]=None, **kwargs: float):
+        self.m: np.ndarray
         if other is None:
             self.m = np.identity(4)
         else:
             self.m = other
+        for name, v in kwargs.items():
+            match name:
+                case 'x':
+                    self.m[3][0] = v
+                case 'y':
+                    self.m[3][1] = v
+                case 'z':
+                    self.m[3][2] = v
+                case 'xrot':
+                    self._copy_rotate(self @ Transform.xrot(v))
+                case 'yrot':
+                    self._copy_rotate(self @ Transform.yrot(v))
+                case 'zrot':
+                    self._copy_rotate(self @ Transform.zrot(v))
+                case _:
+                    raise NameError(f"unknown keyword arg '{name}' to Transform()")
+            
 
     def copy(self) -> Transform:
         return Transform(self.m.copy())
+
+    def _copy_rotate(self, other: Transform) -> None:
+        for i in range(3):
+            for j in range(3):
+                self.m[i][j] = other.m[i][j]
 
     def __matmul__(self, other: Self) -> Self:
         return Transform(self.m @ other.m)

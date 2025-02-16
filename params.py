@@ -5,7 +5,7 @@ from copy import copy
 
 defaults = {
     "clear_height" : 0.3,
-    "step_height" : 0.7,
+    "default_step_height" : 0.5,
     "default_height" : 2.5,
     "femur_length" : 2,
     "tibia_length" : 2.3,
