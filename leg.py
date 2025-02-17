@@ -9,7 +9,7 @@ from math import *
 from dataclasses import dataclass
 from enum import Enum
 from params import Params
-from servo_action import ServoAction
+from servo_action import *
 from logger import Logger
 
 @dataclass
@@ -43,7 +43,7 @@ class Leg:
         self.position = Point()
         self.start = Point()
         self.angles = LegAngles()
-        self.clear_height = Params.get("clear_height")
+        self.clear_height: float = Params.get("clear_height")
         self.rest_position = _rest_position
 
     def set_rest_position(self, pos: Point) -> None:
@@ -100,6 +100,7 @@ class Leg:
 
     def end_step(self) -> Point:
         self.position = self.get_toe_pos(self.angles)
+        return self.position
 
     def move_by(self, delta: Point, actions: ServoActionList) -> None:
         Logger.info(f"move_by leg '{self.which}' start {self.position} delta {delta}")

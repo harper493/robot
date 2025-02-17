@@ -14,8 +14,8 @@ class ServoActionList:
 
     def __init__(self, _max_iter: int=10, _speed: int=300):
         self.max_iter, self.speed = _max_iter, _speed
-        self.actions = OrderedDict()
-        self.positions = {}
+        self.actions: dict[int,float] = OrderedDict()
+        self.positions: dict[int,float] = {}
         #self.my_servo = Servo()
 
     def __str__(self) -> str:

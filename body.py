@@ -26,10 +26,10 @@ class Body:
         self.attitude = Transform()
         self.absolute_position = Point()
         self.legs: dict[str, Leg] = {}
-        self.gaits = OrderedDict()
+        self.gaits:dict[str, list[tuple[str]]] = OrderedDict()
         self.cur_gait: list[tuple[str]] | None = None
         self.step_iter = None
-        self.height = Params.get('default_height')
+        self.height: float = Params.get('default_height')
         self.prev_stride = 0.0
 
     def add_leg(self, type: Leg, which: str) -> None:
@@ -42,10 +42,10 @@ class Body:
                           int(Params.get(prefix+'servo_tibia')))
         femur = Params.get(prefix+'femur', True) or Params.get('femur_length')
         tibia = Params.get(prefix+'tibia', True) or Params.get('tibia_length')
-        self.legs[which] = type(len(self.legs), which, pos, femur, tibia, servos)
+        self.legs[which] = QuadLeg(len(self.legs), which, pos, femur, tibia, servos)
 
     def add_gait(self, gname: str, descr: str) -> None:
-        gait = []
+        gait: list[tuple[str]] = []
         for d in descr.split(','):
             gait.append(tuple([ self.legs[dd] for dd in d.split('+') ]))
         self.gaits[gname] = gait

@@ -39,22 +39,16 @@ defaults = {
 
 class Params:
 
-    the_params = None
-
     def __init__(self, _filename: str):
         self.filename = _filename
         try:
             with open(self.filename) as f:
-                try:
-                    v = float(value)
-                except ValueError:
-                    v = value
-                self.values = { name:v for name,value in json.loads(f.read().items()) }
+                self.values = { name:self._parse_value(value) for name,value in json.loads(f.read()).items() }
         except:
             self.values = copy(defaults)
             self.save()
 
-    def get(pname: str, miss_ok: bool=False) -> float|str|None:
+    def get2(self, pname: str, miss_ok: bool=False) -> float|str|None:
         result = self.values.get(pname, None)
         if result is None and not miss_ok:
             raise ValueError(f"unknown parameter '{pname}'")
@@ -73,16 +67,23 @@ class Params:
         for i in self.items():
             yield i
 
+    def _parse_value(sel, value):
+        try:
+            return float(value)
+        except ValueError:
+            return value
+
+
     @staticmethod
     def get(pname: str, miss_ok: bool=False) -> float|str|None:
-        result = Params.the_params.values.get(pname)
+        result = the_params.values.get(pname)
         if result is None and not miss_ok:
             raise ValueError(f"unknown parameter '{pname}'")
         return result
 
     @staticmethod
     def enumerate():
-        for i in Params.the_params.values.items():
+        for i in the_params.values.items():
             yield i
     
-Params.the_params = Params('parameters.txt')
+the_params = Params('parameters.txt')

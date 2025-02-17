@@ -4,7 +4,6 @@ from __future__ import annotations
 import numpy as np
 import scipy
 from numpy import linalg
-from typing import Self
 from dtrig import *
 from math import *
 
@@ -59,20 +58,20 @@ class Point2D:
         else:
             self.p = np.array([float(x), float(y)], dtype=np.float64)
 
-    def clean(self) -> Self:
+    def clean(self) -> Point2D:
         return Point2D(np.round(self.p, 3))
         
     def __str__(self) -> str:
         c = self.clean()
         return f'(x={c.x():.3f} y={c.y():.3f})'
 
-    def __add__(self, other) -> Self:
+    def __add__(self, other) -> Point2D:
         if isinstance(other, Point2D):
             return Point2D(np.add(self.p, other.p))
         else:
             return Point2D(np.add(self.p, other))
 
-    def __sub__(self, other) -> Self:
+    def __sub__(self, other) -> Point2D:
         if isinstance(other, Point2D):
             return Point2D(np.subtract(self.p, other.p))
         else:
@@ -84,10 +83,10 @@ class Point2D:
     def __truediv__(self, x: float) -> Point2D:
         return Point2D(np.divide(self.p, x))
 
-    def __eq__(self, other: Point2D) -> bool:
+    def __eq__(self, other: Point2D) -> bool:    #type: ignore
         return equal(self.x(), other.x()) and equal(self.y(), other.y())
 
-    def __ne__(self, other: Point2D) -> bool:
+    def __ne__(self, other: Point2D) -> bool:    #type: ignore
         return not (self==other)
 
     def x(self) -> float:
@@ -102,20 +101,20 @@ class Point2D:
     def angle(self) -> float:
         return datan2(self.x(), self.y())
 
-    def reflect_x(self) -> Point:
+    def reflect_x(self) -> Point2D:
         return Point2D(self.x(), -self.y())
 
-    def reflect_y(self) -> Self:
+    def reflect_y(self) -> Point2D:
         return Point2D(-self.x(), self.y())
 
     def dist(self, other: Point2D) -> float:
         return sqrt(self.dist2(other))
 
     def dist2(self, other: Point2D) -> float:
-        return np.sum(np.square(self - other).p)
+        return np.sum(np.square((self - other).p))
 
     @staticmethod
-    def from_polar(r: float, theta: float) -> Self:
+    def from_polar(r: float, theta: float) -> Point2D:
         return Point2D(dsin(theta), dcos(theta)) * r 
 
 #
@@ -132,46 +131,46 @@ class Point:
         else:
             self.p = np.array([float(x), float(y), float(z), 1.0], dtype=np.float64)
 
-    def copy(self) -> Self:
+    def copy(self) -> Point:
         return Point(self.p.copy())
 
-    def clean(self) -> Self:
+    def clean(self) -> Point:
         return Point(np.round(self.p, 3))
         
     def __str__(self) -> str:
         c = self.clean()
         return f'(x={c.x():.3f} y={c.y():.3f} z={c.z():.3f})'
 
-    def __neg__(self) -> Self:
+    def __neg__(self) -> Point:
         return Point((-self.p))
 
-    def __add__(self, other) -> Self:
+    def __add__(self, other) -> Point:
         if isinstance(other, Point):
             return Point(np.add(self.p, other.p))
         else:
             return Point(np.add(self.p, other))
         
-    def __sub__(self, other) -> Self:
+    def __sub__(self, other) -> Point:
         if isinstance(other, Point):
             return Point(np.subtract(self.p, other.p))
         else:
             return Point(np.subtract(self.p, other))
 
-    def __eq__(self, other: Point2D) -> bool:
+    def __eq__(self, other: Point) -> bool:    #type: ignore
         return (equal(self.x(), other.x())
                 and equal(self.y(), other.y())
                 and equal(self.z(), other.z()))
 
-    def __ne__(self, other: Point) -> bool:
+    def __ne__(self, other: Point) -> bool:    #type: ignore
         return not (self==other)
     
-    def __mul__(self, other: float) -> Self:
+    def __mul__(self, other: float) -> Point:
         return Point(np.multiply(self.p, other))
     
-    def __truediv__(self, other: float) -> Self:
+    def __truediv__(self, other: float) -> Point:
         return Point(np.divide(self.p, other))
 
-    def __matmul__(self, tf: Transform) -> Self:
+    def __matmul__(self, tf: Transform) -> Point:
         return Point(self.p @ tf.m)
 
     def length(self) -> float:
@@ -214,7 +213,7 @@ class Point:
 
 class Transform:
 
-    def __init__(self, other: type[None|np.ndarray]=None, **kwargs: float):
+    def __init__(self, other: None|np.ndarray=None, **kwargs: float):
         self.m: np.ndarray
         if other is None:
             self.m = np.identity(4)
@@ -246,22 +245,22 @@ class Transform:
             for j in range(3):
                 self.m[i][j] = other.m[i][j]
 
-    def __matmul__(self, other: Self) -> Self:
+    def __matmul__(self, other: Transform) -> Transform:
         return Transform(self.m @ other.m)
 
     def __str__(self) -> str:
         return str(self.clean().m)
 
-    def clean(self) -> Self:
+    def clean(self) -> Transform:
         return Transform(np.round(self.m, 3))
 
-    def __neg__(self) -> Self:
+    def __neg__(self) -> Transform:
         return Transform(linalg.inv(self.m))
 
-    def __mul__(self, other: Transform|float) -> Self:
+    def __mul__(self, other: Transform|float) -> Transform:
         return Transform(self.m * other)
 
-    def __truediv__(self, other: Transform|float) -> Self:
+    def __truediv__(self, other: Transform|float) -> Transform:
         return Transform(self.m / other)
 
 #
@@ -275,7 +274,7 @@ class Transform:
 # xlate - add translation (replacing existing translation)
 #
 
-    def xlate(self, p: Point) -> Self:
+    def xlate(self, p: Point) -> Transform:
         result = self.copy()
         result.m[3][0] = p.x()
         result.m[3][1] = p.y()
@@ -286,7 +285,7 @@ class Transform:
 # add_xlate - modify existing translation
 #
         
-    def add_xlate(self, p: Point) -> Self:
+    def add_xlate(self, p: Point) -> Transform:
         result = self.copy()
         result.m[3][0] += p.x()
         result.m[3][1] += p.y()
@@ -354,7 +353,7 @@ class Line:
         self.p0, self.p1 = p0, p1
 
     def length(self) -> float:
-        return p0.dist(p1)
+        return self.p0.dist(self.p1)
 
     def along(self, where: float) -> Point:
         return (self.p1 - self.p0) * where + self.p0

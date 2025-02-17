@@ -11,10 +11,10 @@ class Control:
     def __init__(self, _body: Body):
         self.body = _body
         self.position = Point2D()
-        self.height = Params.get('default_height')
+        self.height: float = Params.get('default_height')
         self.posture = Transform()
-        self.step_size = Params.get('default_step_size')
-        self.step_height = Params.get('default_step_height')
+        self.step_size: float = Params.get('default_step_size')
+        self.step_height: float = Params.get('default_step_height')
         self.default_gait = None
         Logger.init()
 
