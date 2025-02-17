@@ -19,6 +19,8 @@ named_postures = {
     'stand' : Transform(x=1.0, z=-2.5)
     }
 
+Gait_type = list[tuple[Leg, ...]]
+
 class Body:
 
     def __init__(self, height: float=0.0):
@@ -26,8 +28,8 @@ class Body:
         self.attitude = Transform()
         self.absolute_position = Point()
         self.legs: dict[str, Leg] = {}
-        self.gaits:dict[str, list[tuple[Leg, ...]]] = OrderedDict()
-        self.cur_gait: list[tuple[Leg, ...]] | None = None
+        self.gaits:dict[str, Gait_type] = OrderedDict()
+        self.cur_gait: Gait_type | None = None
         self.step_iter = None
         self.height: float = Params.get('default_height')
         self.prev_stride = 0.0
@@ -45,7 +47,7 @@ class Body:
         self.legs[which] = QuadLeg(len(self.legs), which, pos, femur, tibia, servos)
 
     def add_gait(self, gname: str, descr: str) -> None:
-        gait: list[tuple[Leg, ...]] = []
+        gait: Gait_type = []
         for d in descr.split(','):
             gait.append(tuple([ self.legs[dd] for dd in d.split('+') ]))
         self.gaits[gname] = gait

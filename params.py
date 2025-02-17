@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 import json
+from typing import Iterator
 from copy import copy
 
 defaults = {
@@ -70,7 +71,7 @@ class ParamGroup:
     def exists(self, pname: str) -> bool:
         return str in self.values
 
-    def enumerate(self):
+    def enumerate(self) -> Iterator[tuple[str, str|float]]:
         for i in self.values.items():
             yield i
 
@@ -112,7 +113,7 @@ class Params:
         return the_params.exists(pname)
 
     @staticmethod
-    def enumerate():
+    def enumerate() -> Iterator[tuple[str, str|float]]:
         for i in the_params.values.items():
             yield i
     
