@@ -18,6 +18,11 @@ class LegAngles:
     femur_angle: float = 0.0
     tibia_angle: float = 0.0
 
+    def __neg__(self) -> LegAngles:
+        return LegAngles(cox_angle=-self.cox_angle,
+                         femur_angle=-self.femur_angle,
+                         tibia_angle=-self.tibia_angle)
+
     def __str__(self) -> str:
         return f'cox {round(self.cox_angle, 1)} femur {round(self.femur_angle, 1)} tibia {round(self.tibia_angle, 1)}'
 
@@ -73,9 +78,10 @@ class Leg:
             Logger.error(f"leg '{self.which}' target{target} ({exc})")
             raise exc
         Logger.info(f"goto leg' {self.which}' target{target} angles {self.angles}")
-        actions.append(self.servo_ids.cox_servo, self.angles.cox_angle)
-        actions.append(self.servo_ids.femur_servo, self.angles.femur_angle)
-        actions.append(self.servo_ids.tibia_servo, self.angles.tibia_angle)
+        angles = self.angles if self.which[1]=='l' else -self.angles
+        actions.append(self.servo_ids.cox_servo, angles.cox_angle)
+        actions.append(self.servo_ids.femur_servo, angles.femur_angle)
+        actions.append(self.servo_ids.tibia_servo, angles.tibia_angle)
         self.position = target
 
     def start_step(self, dest: Point, height: float) -> None:

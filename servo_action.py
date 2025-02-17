@@ -1,9 +1,10 @@
 #coding:utf-8
 
+from __future__ import annotations
 from dataclasses import dataclass
 from collections import OrderedDict
 from logger import  Logger
-from Servo import Servo
+from servo import Servo
 import time
 
 @dataclass
@@ -17,7 +18,6 @@ class ServoActionList:
         self.max_iter, self.speed = _max_iter, _speed
         self.actions: dict[int,float] = OrderedDict()
         self.positions: dict[int,float] = {}
-        self.my_servo = Servo()
 
     def __str__(self) -> str:
         return '\n'.join([ f'{ch}: {round(a,1)}' for ch,a in self.actions.items() ])
@@ -40,7 +40,7 @@ class ServoActionList:
                     pos = self.actions[chan]
                 else:
                     pos = self.get_position(chan) + (d / iterations)
-                self.my_servo.setServoAngle(chan, pos)
+                Servo.set_servo_angle(chan, pos)
                 self.positions[chan] = pos
                 time.sleep(1.0 / self.speed)
         self.actions = {}

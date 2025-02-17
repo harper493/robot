@@ -38,7 +38,7 @@ defaults = {
     "gait_default" : "fl,rr,fr,rl"
     }
 
-class Params:
+class ParamGroup:
 
     def __init__(self, _filename: str):
         self.filename = _filename
@@ -49,11 +49,30 @@ class Params:
             self.values = copy(defaults)
             self.save()
 
-    def get2(self, pname: str, miss_ok: bool=False) -> float|str|None:
-        result = self.values.get(pname, None)
-        if result is None and not miss_ok:
+    def get(self, pname: str) -> float:
+        result = self.values.get(pname)
+        if result is None:
             raise ValueError(f"unknown parameter '{pname}'")
-        return result
+        return float(result)
+
+    def get_or(self, pname: str, dflt: float) -> float:
+        result = self.values.get(pname)
+        if result is None:
+            result = dflt
+        return float(result)
+    
+    def get_str(self, pname: str) -> str:
+        result = self.values.get(pname)
+        if result is None:
+            raise ValueError(f"unknown parameter '{pname}'")
+        return str(result)
+
+    def exists(self, pname: str) -> bool:
+        return str in self.values
+
+    def enumerate(self):
+        for i in self.values.items():
+            yield i
 
     def update(self, name: str, value: float) -> None:
         self.values[name] = value
@@ -65,7 +84,7 @@ class Params:
             f.write('\n')
 
     def __iter__(self):
-        for i in self.items():
+        for i in self.values.items():
             yield i
 
     def _parse_value(sel, value):
@@ -74,36 +93,27 @@ class Params:
         except ValueError:
             return value
 
-
+class Params:
+    
     @staticmethod
     def get(pname: str) -> float:
-        result = the_params.values.get(pname)
-        if result is None:
-            raise ValueError(f"unknown parameter '{pname}'")
-        return float(result)
+        return the_params.get(pname)
 
     @staticmethod
     def get_or(pname: str, dflt: float) -> float:
-        result = the_params.values.get(pname)
-        if result is None:
-            result = dflt
-        return float(result)
-
+        return the_params.get_or(pname, dflt)        
     
     @staticmethod
     def get_str(pname: str) -> str:
-        result = the_params.values.get(pname)
-        if result is None:
-            raise ValueError(f"unknown parameter '{pname}'")
-        return str(result)
+        return the_params.get_str(pname)
 
     @staticmethod
     def exists(pname: str) -> bool:
-        return str in the_params.values
+        return the_params.exists(pname)
 
     @staticmethod
     def enumerate():
         for i in the_params.values.items():
             yield i
     
-the_params = Params('parameters.txt')
+the_params = ParamGroup('parameters.txt')
