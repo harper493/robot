@@ -106,6 +106,12 @@ class Leg:
         Logger.info(f"move_by leg '{self.which}' start {self.position} delta {delta}")
         self.goto(self.position + delta, actions)
 
+    def get_angles(self, toe_pos: Point) -> LegAngles:    # always overridden
+        return LegAngles()
+
+    def get_toe_pos(self, angles: LegAngles) -> Point:    # always overridden
+        return Point()
+ 
 class QuadLeg(Leg):
 
     def __init__(self, _number: int, _which: str, _position: Point, _femur: float, _tibia: float,

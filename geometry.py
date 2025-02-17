@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 import numpy as np
-import scipy
+import scipy    #type: ignore[import-untyped]
 from numpy import linalg
 from dtrig import *
 from math import *
@@ -13,7 +13,7 @@ SMALL = 1e-9
 # Useful stand-alone functions
 #
 
-def hypot(x: float, y: float) -> float:
+def hypot(x: float, y: float) -> float:    #type: ignore[no-redef]
     return sqrt(x*x + y*y)
 
 def hypot2(x: float, y: float) -> float:
@@ -22,7 +22,7 @@ def hypot2(x: float, y: float) -> float:
 def sign(x: float) -> float :
     return -1 if x<0 else 1
 
-def dist(x0: float, y0: float, x1: float, y1: float) -> float:
+def dist(x0: float, y0: float, x1: float, y1: float) -> float:    #type: ignore[no-redef]
     return sqrt(dist2(x0, y0, x1, y1))
 
 def dist2(x0: float, y0: float, x1: float, y1: float) -> float:

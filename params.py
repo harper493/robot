@@ -1,5 +1,6 @@
 #coding:utf-8
 
+from __future__ import annotations
 import json
 from copy import copy
 
@@ -75,11 +76,30 @@ class Params:
 
 
     @staticmethod
-    def get(pname: str, miss_ok: bool=False) -> float|str|None:
+    def get(pname: str) -> float:
         result = the_params.values.get(pname)
-        if result is None and not miss_ok:
+        if result is None:
             raise ValueError(f"unknown parameter '{pname}'")
-        return result
+        return float(result)
+
+    @staticmethod
+    def get_or(pname: str, dflt: float) -> float:
+        result = the_params.values.get(pname)
+        if result is None:
+            result = dflt
+        return float(result)
+
+    
+    @staticmethod
+    def get_str(pname: str) -> str:
+        result = the_params.values.get(pname)
+        if result is None:
+            raise ValueError(f"unknown parameter '{pname}'")
+        return str(result)
+
+    @staticmethod
+    def exists(pname: str) -> bool:
+        return str in the_params.values
 
     @staticmethod
     def enumerate():

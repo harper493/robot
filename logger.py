@@ -1,8 +1,11 @@
 #coding:utf-8
 
+from __future__ import annotations
 import logging
 import datetime
 import os
+
+the_logger: Logger
 
 class Logger:
 

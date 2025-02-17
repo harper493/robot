@@ -26,8 +26,8 @@ class Body:
         self.attitude = Transform()
         self.absolute_position = Point()
         self.legs: dict[str, Leg] = {}
-        self.gaits:dict[str, list[tuple[str]]] = OrderedDict()
-        self.cur_gait: list[tuple[str]] | None = None
+        self.gaits:dict[str, list[tuple[Leg, ...]]] = OrderedDict()
+        self.cur_gait: list[tuple[Leg, ...]] | None = None
         self.step_iter = None
         self.height: float = Params.get('default_height')
         self.prev_stride = 0.0
@@ -40,12 +40,12 @@ class Body:
         servos = ServoIds(int(Params.get(prefix+'servo_cox')),
                           int(Params.get(prefix+'servo_femur')),
                           int(Params.get(prefix+'servo_tibia')))
-        femur = Params.get(prefix+'femur', True) or Params.get('femur_length')
-        tibia = Params.get(prefix+'tibia', True) or Params.get('tibia_length')
+        femur = Params.get_or(prefix+'femur', Params.get('femur_length'))
+        tibia = Params.get_or(prefix+'tibia', Params.get('tibia_length'))
         self.legs[which] = QuadLeg(len(self.legs), which, pos, femur, tibia, servos)
 
     def add_gait(self, gname: str, descr: str) -> None:
-        gait: list[tuple[str]] = []
+        gait: list[tuple[Leg, ...]] = []
         for d in descr.split(','):
             gait.append(tuple([ self.legs[dd] for dd in d.split('+') ]))
         self.gaits[gname] = gait
@@ -53,7 +53,7 @@ class Body:
 
     def set_gait(self, gname: str) -> None:
         self.cur_gait = self.gaits[gname]
-        self.step_iter = iter(itertools.cycle(self.cur_gait))
+        self.step_iter = iter(itertools.cycle(self.cur_gait))    #type: ignore[assignment]
 
     def set_named_posture(self, pname: str) -> None:
         self.posture = named_postures[pname]
@@ -74,11 +74,11 @@ class Body:
             self.height = height
             
     def get_step_count(self) -> int:
-        return len(self.cur_gait)
+        return len(self.cur_gait)    #type: ignore[arg-type]
 
     def step(self, stride_tfm: Transform, height: float) -> None:
         stride = stride_tfm.get_xlate()
-        lift_legs = next(self.step_iter)
+        lift_legs = next(self.step_iter)    #type: ignore[call-overload]
         other_legs = [ ll for ll in self.legs.values() if ll not in lift_legs ]
         unstride = (-stride).replace_z(stride.z()) / (self.get_step_count() - 1)
         dest = stride / 2
