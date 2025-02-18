@@ -13,11 +13,7 @@ try:
 except ImportError :
     readline = None
 
-def run():
-    Params.load('parameters.txt')
-    Logger.init('log.txt')
-    body = Body.make_body(Params.get_str('body_type'))
-    control = Control(body)
+def run(control: Control) -> None:
     interpreter = CommandInterpreter(control)
     while True:
         print('robot> ', end='')
@@ -34,6 +30,12 @@ def run():
             except Exception as exc:
                 print("Error: ", str(exc.args[0]))
 
+def init() -> Control:
+    Params.load('parameters.txt')
+    Logger.init('log.txt')
+    body = Body.make_body(Params.get_str('body_type'))
+    return Control(body)
+
 if __name__ == '__main__':
-    run()
+    run(init())
 
