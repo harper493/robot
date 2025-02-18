@@ -40,7 +40,7 @@ class ServoActionList:
                     pos = self.actions[chan]
                 else:
                     pos = self.get_position(chan) + (d / iterations)
-                Servo.set_servo_angle(chan, pos)
+                Servo.get(chan).set_angle(pos)
                 self.positions[chan] = pos
                 time.sleep(1.0 / self.speed)
         self.actions = {}

@@ -27,8 +27,8 @@ def run(control: Control) -> None:
                 interpreter.execute(cmd)
             except StopIteration:
                 break
-            except Exception as exc:
-                print("Error: ", str(exc.args[0]))
+            except ValueError as exc:
+                print("Error:", str(exc.args[0]))
 
 def init() -> Control:
     Params.load('parameters.txt')

@@ -33,8 +33,14 @@ class Servo:
     def set_angle(self, angle: float) -> None:
         pass
 
+    def get_angle(self) -> float:
+        return self.position
+
+    def adjust_angle(self, delta: float) -> None:
+        self.set_angle(self.position + delta)
+
     @staticmethod
-    def enroll(chan: int) -> Servo:
+    def get(chan: int) -> Servo:
         try:
             result = the_servos[chan]
         except KeyError:
@@ -47,7 +53,7 @@ class Servo:
         with open(filename) as f:
             data = f.read()
         for ch,v in json.loads(data):
-            Servo.enroll(int(ch)).calibration = float(v)
+            Servo.get(int(ch)).calibration = float(v)
 
     @staticmethod
     def save_calibration(filename: str) -> None:
@@ -59,7 +65,7 @@ class Servo:
 
     @staticmethod
     def set_servo_angle(chan: int, angle: float) -> None:
-        Servo.enroll(chan).set_angle(angle)
+        Servo.get(chan).set_angle(angle)
 
     @staticmethod
     def factory(chan: int, calib: int = 0) -> Servo:

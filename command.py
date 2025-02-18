@@ -31,15 +31,16 @@ class CommandInterpreter:
         CommandInfo('servo', 'ser', 'modify servo position explicitly'),
         CommandInfo('set', 'set', 'modify parameter'),
         CommandInfo('show', 'sh', 'show something'),
-        CommandInfo('turn', 't', 'walk while turning'),
-        CommandInfo('walk', 'w', 'walk in straight line'),
+        CommandInfo('turn', 't', 'walk while turning: turn distance angle [direction]'),
+        CommandInfo('walk', 'w', 'walk in straight line: walk distance [direction]'),
         )
 
     def __init__(self, c: Control):
         self.control = c
+        self.words: list[str] = []
 
     def find_keyword(self, commands: tuple[CommandInfo, ...], cmd: str, fn_prefix: str) \
-        -> Callable[[CommandInterpreter, list[str]], None] :
+        -> Callable[[CommandInterpreter], None] :
         for c in commands:
             if c.name.startswith(cmd) and cmd.startswith(c.abbrev):
                 return getattr(CommandInterpreter, fn_prefix+c.name)
@@ -47,27 +48,46 @@ class CommandInterpreter:
             raise ValueError()        
 
     def execute(self, line: str) -> None:
-        words = line.lower().split()
+        self.words = line.lower().split()
         try:
-            fn = self.find_keyword(CommandInterpreter.the_commands, words[0], 'do_')
+            fn = self.find_keyword(CommandInterpreter.the_commands, self.words[0], 'do_')
         except ValueError:
-            raise ValueError(f"unknown or ambiguous command '{words[0]}'")
-        (fn)(self, words)
+            raise ValueError(f"unknown or ambiguous command '{self.words[0]}'")
+        (fn)(self)
 
     def help(self, cmds: tuple[CommandInfo, ...]) -> str:        
         return '\n'.join([ f'{c.name:8} {c.help}' for c in cmds ])
-    
-    def do_help(self, words: list[str]) -> None:
+
+    def check_args(self, minargs: int, maxargs: int = -1) -> None:
+        if len(self.words) < minargs + 1:
+            raise ValueError(f"too few arguments for command")
+        elif len(self.words) > max(minargs, maxargs) + 1:
+            raise ValueError(f"too many arguments for command")
+
+    def get_float_arg(self, arg: int) -> float:
+        self.check_args(1, 1000)
+        try:
+            return float(self.words[arg])
+        except ValueError:
+            raise ValueError(f"expected number, not '{self.words[arg]}'")
+                
+    def do_help(self) -> None:
         print(self.help(CommandInterpreter.the_commands))
 
-    def do_quit(self, words: list[str]) -> None:
+    def do_quit(self) -> None:
         raise StopIteration()
 
-    def do_height(self, words: list[str]) -> None:
-        print('not yet')
+    def do_height(self) -> None:
+        self.check_args(1)
+        self.control.set_height(self.get_float_arg(1))
 
-    def do_posture(self, words: list[str]) -> None:
-        self.control.set_named_posture(words[1])
+    def do_posture(self) -> None:
+        self.check_args(1)
+        self.control.set_posture(self.words[1])
+
+    def do_servo(self) -> None:
+        self.check_args(2)
+        self.control.set_servo(self.words[1], self.words[2])
 
 r"""
 def do_servo(cmd):

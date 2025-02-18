@@ -28,6 +28,7 @@ class Body:
         self.attitude = Transform()
         self.absolute_position = Point()
         self.legs: dict[str, Leg] = {}
+        self.head_servo = 0
         self.gaits:dict[str, Gait_type] = OrderedDict()
         self.default_gait: Gait_type = None     #type: ignore[assignment]
         self.cur_gait: Gait_type
@@ -82,6 +83,17 @@ class Body:
     def get_step_count(self) -> int:
         return len(self.cur_gait)
 
+    def get_servos(self, name: str) -> list[int]:
+        if name=='h':
+            return [ self.head_servo ]
+        elif len(name) >= 3:
+            return [ ll.get_servo(name[2])
+                     for ll in self.legs.values()
+                     if (name[0]=='*' or name[0]==ll.which[0])
+                         and (name[1]=='*' or name[1]==ll.which[1])]
+        else:
+            return []
+    
     def step(self, stride_tfm: Transform, height: float) -> None:
         stride = stride_tfm.get_xlate()
         lift_legs = next(self.step_iter)    #type: ignore[call-overload]

@@ -14,23 +14,23 @@ from logger import Logger
 
 @dataclass
 class LegAngles:
-    cox_angle: float = 0.0
-    femur_angle: float = 0.0
-    tibia_angle: float = 0.0
+    cox: float = 0.0
+    femur: float = 0.0
+    tibia: float = 0.0
 
     def __neg__(self) -> LegAngles:
-        return LegAngles(cox_angle=-self.cox_angle,
-                         femur_angle=-self.femur_angle,
-                         tibia_angle=-self.tibia_angle)
+        return LegAngles(cox=-self.cox,
+                         femur=-self.femur,
+                         tibia=-self.tibia)
 
     def __str__(self) -> str:
-        return f'cox {round(self.cox_angle, 1)} femur {round(self.femur_angle, 1)} tibia {round(self.tibia_angle, 1)}'
+        return f'cox {round(self.cox, 1)} femur {round(self.femur, 1)} tibia {round(self.tibia, 1)}'
 
 @dataclass
 class ServoIds:
-    cox_servo: int
-    femur_servo: int
-    tibia_servo: int
+    cox: int
+    femur: int
+    tibia: int
 
 class StepPhase(Enum):
     clear = 1
@@ -61,13 +61,13 @@ class Leg:
             raise ValueError(f'leg.get_femur_tibia: impossible position {toe_pos}')
         alpha = toe_pos.angle()
         beta = cosine_rule(h, self.femur, self.tibia)
-        result.femur_angle = beta - alpha
-        result.tibia_angle = cosine_rule(self.tibia, self.femur, h)
+        result.femur = beta - alpha
+        result.tibia = cosine_rule(self.tibia, self.femur, h)
         return result
 
     def get_toe_pos_2D(self, angles: LegAngles) -> Point2D:
-        knee_pos = Point2D.from_polar(self.femur, angles.femur_angle).reflect_y()
-        alpha = angles.tibia_angle - (90 - angles.femur_angle)
+        knee_pos = Point2D.from_polar(self.femur, angles.femur).reflect_y()
+        alpha = angles.tibia - (90 - angles.femur)
         toe_offset = Point2D.from_polar(self.tibia, 90 - alpha)
         return (knee_pos + toe_offset).reflect_x()
 
@@ -79,9 +79,9 @@ class Leg:
             raise exc
         Logger.info(f"goto leg' {self.which}' target{target} angles {self.angles}")
         angles = self.angles if self.which[1]=='l' else -self.angles
-        actions.append(self.servo_ids.cox_servo, angles.cox_angle)
-        actions.append(self.servo_ids.femur_servo, angles.femur_angle)
-        actions.append(self.servo_ids.tibia_servo, angles.tibia_angle)
+        actions.append(self.servo_ids.cox, angles.cox)
+        actions.append(self.servo_ids.femur, angles.femur)
+        actions.append(self.servo_ids.tibia, angles.tibia)
         self.position = target
 
     def start_step(self, dest: Point, height: float) -> None:
@@ -117,6 +117,17 @@ class Leg:
 
     def get_toe_pos(self, angles: LegAngles) -> Point:    # always overridden
         return Point()
+
+    def get_servo(self, which: str) -> int:
+        match which:
+            case 'c':
+                return self.servo_ids.cox
+            case 'f':
+                return self.servo_ids.femur
+            case 't':
+                return self.servo_ids.tibia
+            case _:
+                return -1
  
 class QuadLeg(Leg):
 
@@ -131,11 +142,11 @@ class QuadLeg(Leg):
         except ValueError as exc:
             print(f'{exc} toe_pos {toe_pos}')
             raise exc
-        result.cox_angle = cox + 90
+        result.cox = cox + 90
         return result
 
     def get_toe_pos(self, angles: LegAngles) -> Point:
         t1 = self.get_toe_pos_2D(angles)
         h = t1.y()
-        return Point(t1.x(), -h * dsin(angles.cox_angle - 90), h * dcos(angles.cox_angle - 90)) 
+        return Point(t1.x(), -h * dsin(angles.cox - 90), h * dcos(angles.cox - 90)) 
 
