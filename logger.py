@@ -5,7 +5,7 @@ import logging
 import datetime
 import os
 
-use_console: bool = True
+use_console: bool = False
 the_file: _io.TextIOWrapper = None    #type: ignore[assignment, name-defined]
 
 class Logger:

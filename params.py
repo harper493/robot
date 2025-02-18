@@ -5,45 +5,9 @@ import json
 from typing import Iterator
 from copy import copy
 
-defaults = {
-    "body_type" : "quad",
-    "clear_height" : 0.3,
-    "default_step_height" : 0.5,
-    "default_height" : 2.5,
-    "default_speed" : 0.0,
-    "femur_length" : 2,
-    "tibia_length" : 2.3,
-    "default_step_size" : 1,
-    "leg_fl_servo_cox" : 4,
-    "leg_fl_servo_femur" : 3,
-    "leg_fl_servo_tibia" : 2,
-    "leg_fr_servo_cox" : 11,
-    "leg_fr_servo_femur" : 12,
-    "leg_fr_servo_tibia" : 13,
-    "leg_rl_servo_cox" : 7,
-    "leg_rl_servo_femur" : 6,
-    "leg_rl_servo_tibia" : 5,
-    "leg_rr_servo_cox" : 8,
-    "leg_rr_servo_femur" : 9,
-    "leg_rr_servo_tibia" : 10,
-    "leg_fl_x" : 85,
-    "leg_fl_y" : 50,
-    "leg_fl_z" : 0,
-    "leg_fr_x" : 85,
-    "leg_fr_y" : -50,
-    "leg_fr_z" : 0,
-    "leg_rl_x" : -90,
-    "leg_rl_y" : 50,
-    "leg_rl_z" : 0,
-    "leg_rr_x" : -90,
-    "leg_rr_y" : -50,
-    "leg_rr_z" : 0,
-    "gait_default" : "fl,rr,fr,rl",
-    }
-
 class ParamGroup:
 
-    def __init__(self, _filename: str):
+    def __init__(self, _filename: str, defaults: dict[str, str]):
         if _filename:
             self.filename = _filename
             try:
@@ -51,7 +15,10 @@ class ParamGroup:
                     self.values = { name:self._parse_value(value) for name,value in json.loads(f.read()).items() }
             except FileNotFoundError:
                 self.values = copy(defaults)
-                self.save()
+            for p,v in defaults.items():
+                if p not in self.values:
+                    self.values[p] = self._parse_value(v)
+            self.save()
 
     def get(self, pname: str) -> float:
         result = self.values.get(pname)
@@ -97,7 +64,7 @@ class ParamGroup:
         except ValueError:
             return value
 
-the_params = ParamGroup('')
+the_params = ParamGroup('', {})
 
 class Params:
     
@@ -123,6 +90,6 @@ class Params:
             yield i
 
     @staticmethod
-    def load(filename: str) -> None:
+    def load(filename: str, defaults: dict[str, str]) -> None:
         global the_params
-        the_params = ParamGroup(filename)
+        the_params = ParamGroup(filename, defaults)

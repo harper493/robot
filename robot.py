@@ -13,6 +13,42 @@ try:
 except ImportError :
     readline = None     #type: ignore[assignment]
 
+parameter_defaults = {
+    "body_type" : "quad",
+    "clear_height" : "0.3",
+    "default_step_height" : "0.5",
+    "default_height" : "2.5",
+    "default_speed" : "0.0",
+    "femur_length" : "2",
+    "tibia_length" : "2.3",
+    "default_step_size" : "1",
+    "leg_fl_servo_cox" : "4",
+    "leg_fl_servo_femur" : "3",
+    "leg_fl_servo_tibia" : "2",
+    "leg_fr_servo_cox" : "11",
+    "leg_fr_servo_femur" : "12",
+    "leg_fr_servo_tibia" : "13",
+    "leg_rl_servo_cox" : "7",
+    "leg_rl_servo_femur" : "6",
+    "leg_rl_servo_tibia" : "5",
+    "leg_rr_servo_cox" : "8",
+    "leg_rr_servo_femur" : "9",
+    "leg_rr_servo_tibia" : "10",
+    "leg_fl_x" : "85",
+    "leg_fl_y" : "50",
+    "leg_fl_z" : "0",
+    "leg_fr_x" : "85",
+    "leg_fr_y" : "-50",
+    "leg_fr_z" : "0",
+    "leg_rl_x" : "-90",
+    "leg_rl_y" : "50",
+    "leg_rl_z" : "0",
+    "leg_rr_x" : "-90",
+    "leg_rr_y" : "-50",
+    "leg_rr_z" : "0",
+    "gait_default" : "fl,rr,fr,rl",
+    }    
+
 def run(control: Control) -> None:
     interpreter = CommandInterpreter(control)
     while True:
@@ -31,7 +67,7 @@ def run(control: Control) -> None:
                 print("Error:", str(exc.args[0]))
 
 def init() -> Control:
-    Params.load('parameters.txt')
+    Params.load('parameters.txt', parameter_defaults)
     Logger.init('log.txt')
     body = Body.make_body(Params.get_str('body_type'))
     return Control(body)
