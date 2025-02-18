@@ -29,7 +29,8 @@ class Body:
         self.absolute_position = Point()
         self.legs: dict[str, Leg] = {}
         self.gaits:dict[str, Gait_type] = OrderedDict()
-        self.cur_gait: Gait_type | None = None
+        self.default_gait: Gait_type = None
+        self.cur_gait: Gait_type
         self.step_iter = None
         self.height: float = Params.get('default_height')
         self.prev_stride = 0.0
@@ -58,7 +59,10 @@ class Body:
         self.step_iter = iter(itertools.cycle(self.cur_gait))    #type: ignore[assignment]
 
     def set_named_posture(self, pname: str) -> None:
-        self.posture = named_postures[pname]
+        try:
+            self.posture = named_postures[pname]
+        except KeyError:
+            raise ValueError(f"unknown posture '{pname}'")
         actions = ServoActionList()
         for ll in self.legs.values():
             pos = self.posture.get_xlate()
@@ -76,7 +80,7 @@ class Body:
             self.height = height
             
     def get_step_count(self) -> int:
-        return len(self.cur_gait)    #type: ignore[arg-type]
+        return len(self.cur_gait)
 
     def step(self, stride_tfm: Transform, height: float) -> None:
         stride = stride_tfm.get_xlate()
@@ -110,6 +114,35 @@ class Body:
         for ll in self.legs.values():
             ll.end_step()
             Logger.info(f'leg {ll.which} toe position {ll.position}')
+
+    def build_quad(self):
+        for w in ('fl','fr', 'rl', 'rr'):
+            self.add_leg(QuadLeg, w)
+        for p,v in Params.enumerate():
+            if p.startswith('gait_'):
+                gname = p.split('_')[1]
+                self.add_gait(gname, v)
+                if self.default_gait is None or gname=='default':
+                    self.set_gait(gname)
+                    self.default_gait = gname
+        actions = ServoActionList()
+        for ll in self.legs.values():
+            ll.goto(Point(ll.tibia, 0, -ll.femur), actions)
+        actions.exec()
+
+    @staticmethod
+    def make_body(_type: str) -> Body:
+        try:
+            fn = type_list[_type]
+        except KeyError:
+            raise ValueError("unknown body type '{_type}")
+        result = Body()
+        fn(result)
+        return result
                 
+type_list = {
+    'quad' : Body.build_quad,
+    }
+
             
                     

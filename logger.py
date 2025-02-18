@@ -36,9 +36,9 @@ class Logger:
         the_logger.my_logger.error(text)
 
     @staticmethod
-    def init() -> None:
+    def init(filename: str='log.txt') -> None:
         global the_logger
-        the_logger = Logger()
+        the_logger = Logger(filename)
         Logger.info(f"Logger initialised at {datetime.datetime.now()}")
         
 

@@ -6,6 +6,7 @@ from typing import Iterator
 from copy import copy
 
 defaults = {
+    "body_type" : "quad",
     "clear_height" : 0.3,
     "default_step_height" : 0.5,
     "default_height" : 2.5,
@@ -36,7 +37,7 @@ defaults = {
     "leg_rr_x" : -90,
     "leg_rr_y" : -50,
     "leg_rr_z" : 0,
-    "gait_default" : "fl,rr,fr,rl"
+    "gait_default" : "fl,rr,fr,rl",
     }
 
 class ParamGroup:
@@ -116,5 +117,8 @@ class Params:
     def enumerate() -> Iterator[tuple[str, str|float]]:
         for i in the_params.values.items():
             yield i
-    
-the_params = ParamGroup('parameters.txt')
+
+    @staticmethod
+    def load(filename: str) -> None:
+        global the_params
+        the_params = ParamGroup(filename)

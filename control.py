@@ -8,8 +8,8 @@ from logger import Logger
 
 class Control:
 
-    def __init__(self, _body: Body):
-        self.body = _body
+    def __init__(self, b: Body):
+        self.body = b
         self.position = Point2D()
         self.height: float = Params.get('default_height')
         self.posture = Transform()
@@ -33,19 +33,4 @@ class Control:
             self.body.step(stride, self.step_height)
         for s in range(self.body.get_step_count()):
             self.body.step(Transform(), self.step_height)
-
-    def build_quad(self):
-        for w in ('fl','fr', 'rl', 'rr'):
-            self.body.add_leg(QuadLeg, w)
-        for p,v in Params.enumerate():
-            if p.startswith('gait_'):
-                gname = p.split('_')[1]
-                self.body.add_gait(gname, v)
-                if self.default_gait is None or gname=='default':
-                    self.body.set_gait(gname)
-                    self.default_gait = gname
-        actions = ServoActionList()
-        for ll in self.body.legs.values():
-            ll.goto(Point(ll.tibia, 0, -ll.femur), actions)
-        actions.exec()
 
