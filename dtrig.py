@@ -18,11 +18,7 @@ def dasin(s) :
     return r2d * asin(s)
 
 def dacos(c) :
-    try:
-        return r2d * acos(c)
-    except:
-        print(f'dacos error {c}')
-        return -100000
+    return r2d * acos(c)
 
 def datan(t) :
     return r2d * atan(t)

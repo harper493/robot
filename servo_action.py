@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from collections import OrderedDict
 from logger import  Logger
 from servo import Servo
+from params import Params
 import time
 
 @dataclass
@@ -14,8 +15,8 @@ class ServoAction:
 
 class ServoActionList:
 
-    def __init__(self, _max_iter: int=10, _speed: int=300):
-        self.max_iter, self.speed = _max_iter, _speed
+    def __init__(self, _max_iter: int=10):
+        self.max_iter, self.speed = _max_iter, Params.get('default_speed')
         self.actions: dict[int,float] = OrderedDict()
         self.positions: dict[int,float] = {}
 
@@ -42,7 +43,8 @@ class ServoActionList:
                     pos = self.get_position(chan) + (d / iterations)
                 Servo.get(chan).set_angle(pos)
                 self.positions[chan] = pos
-                #time.sleep(1.0 / self.speed)
+                if self.speed:
+                    time.sleep(1.0 / self.speed)
         self.actions = {}
 
     def get_position(self, chan: int) -> float:

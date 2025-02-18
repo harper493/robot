@@ -26,7 +26,7 @@ class CommandInterpreter:
     the_commands = (
         CommandInfo('height', 'he', 'set height'),
         CommandInfo('help', 'h', 'get help'),
-        CommandInfo('leg', 'l', 'set leg position explicitly'),
+        CommandInfo('leg', 'l', 'set leg position explicitly: leg leg-name x y z'),
         CommandInfo('posture', 'p', 'set static posture'),
         CommandInfo('quit', 'q', 'terminate program'),
         CommandInfo('servo', 'ser', 'modify servo position explicitly'),
@@ -36,6 +36,11 @@ class CommandInterpreter:
         CommandInfo('verbose', 'v', 'set verbosity level'),        
         CommandInfo('walk', 'w', 'walk in straight line: walk distance [direction]'),
         )
+
+    show_commands = (
+        CommandInfo('legs', 'le', 'show leg and body positions'),
+        CommandInfo('position', 'po', 'show body position'),
+    )
 
     def __init__(self, c: Control):
         self.control = c
@@ -47,7 +52,7 @@ class CommandInterpreter:
             if c.name.startswith(cmd) and cmd.startswith(c.abbrev):
                 return getattr(CommandInterpreter, fn_prefix+c.name)
         else:
-            raise ValueError()        
+            raise ValueError(f"unknown or ambiguous keyword '{cmd}'")        
 
     def execute(self, line: str) -> None:
         self.words = line.lower().split()
@@ -57,7 +62,7 @@ class CommandInterpreter:
             raise ValueError(f"unknown or ambiguous command '{self.words[0]}'")
         (fn)(self)
 
-    def help(self, cmds: tuple[CommandInfo, ...]) -> str:        
+    def help(self, cmds: tuple[CommandInfo, ...]) -> str:
         return '\n'.join([ f'{c.name:8} {c.help}' for c in cmds ])
 
     def check_args(self, minargs: int, maxargs: int = -1) -> None:
@@ -91,6 +96,11 @@ class CommandInterpreter:
         self.check_args(2)
         self.control.set_servo(self.words[1], self.words[2])
 
+    def do_show(self) -> None:
+        self.check_args(1)
+        fn = self.find_keyword(self.show_commands, self.words[1], 'show_')
+        (fn)(self)
+
     def do_turn(self) -> None:
         self.check_args(2, 3)
         dist = self.get_float_arg(1)
@@ -107,6 +117,15 @@ class CommandInterpreter:
         dist = self.get_float_arg(1)
         dir = self.get_float_arg(2) if len(self.words) > 2 else 0
         self.control.walk(dist, dir)
+
+    def show_legs(self) -> None:
+        self.show_position()
+        print(self.control.body.show_legs())
+    
+    def show_position(self) -> None:
+        print(f"Body position: {self.control.body.show_position()}")
+
+        
         
 
 r"""

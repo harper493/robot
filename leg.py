@@ -128,6 +128,9 @@ class Leg:
                 return self.servo_ids.tibia
             case _:
                 return -1
+
+    def show_position(self) -> str:
+        return f"Leg '{self.which}' position {str(self.position)[1:-1]} angles {self.angles}"
  
 class QuadLeg(Leg):
 

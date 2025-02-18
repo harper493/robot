@@ -142,6 +142,12 @@ class Body:
             ll.goto(Point(ll.tibia, 0, -ll.femur), actions)
         actions.exec()
 
+    def show_position(self) -> str:
+        return str(self.position)
+
+    def show_legs(self) -> str:
+        return '\n'.join([ ll.show_position() for ll in self.legs.values() ])
+
     @staticmethod
     def make_body(_type: str) -> Body:
         try:

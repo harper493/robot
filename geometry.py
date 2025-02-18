@@ -6,6 +6,7 @@ import scipy    #type: ignore[import-untyped]
 from numpy import linalg
 from dtrig import *
 from math import *
+from logger import Logger
 
 SMALL = 1e-9
 
@@ -31,9 +32,10 @@ def dist2(x0: float, y0: float, x1: float, y1: float) -> float:
     return dx*dx + dy*dy
 
 def cosine_rule(l1: float, l2: float, opposite: float) -> float:
-    result = dacos((l1*l1 + l2*l2 - opposite*opposite) / (2*l1*l2))
-    if result < -360:
-        print(f'cosine_rule {l1} {l2} {opposite}')
+    try:
+        result = dacos((l1*l1 + l2*l2 - opposite*opposite) / (2*l1*l2))
+    except (ValueError, ZeroDivisionError):
+        Logger.error(f'cosine rule error {l1} {l2} {opposite}')
         result = 90
     return result
 

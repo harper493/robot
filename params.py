@@ -10,6 +10,7 @@ defaults = {
     "clear_height" : 0.3,
     "default_step_height" : 0.5,
     "default_height" : 2.5,
+    "default_speed" : 0.0,
     "femur_length" : 2,
     "tibia_length" : 2.3,
     "default_step_size" : 1,
