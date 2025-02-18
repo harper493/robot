@@ -5,7 +5,8 @@ import logging
 import datetime
 import os
 
-the_logger: Logger
+use_console: bool = True
+the_file: _io.TextIOWrapper = None    #type: ignore[assignment, name-defined]
 
 class Logger:
 
@@ -15,30 +16,39 @@ class Logger:
         except:
             pass
         self.my_logger = logging.getLogger('')
-        logging.basicConfig(format='%(levelname)s: %(message)s',
-                            level=logging.DEBUG,
-                            filename=filename)
+
+    @staticmethod
+    def print_console(level: str, text: str) -> None:
+        the_file.write(f'{level}: {text}\n')
+        the_file.flush()
+        if use_console:
+            print(f'{level}: {text}')
 
     @staticmethod
     def info(text: str) -> None:
-        the_logger.my_logger.info(text)
+        Logger.print_console('INFO', text)
 
     @staticmethod
     def debug(text: str) -> None:
-        the_logger.my_logger.debug(text)
+        Logger.print_console('DEBUG', text)
 
     @staticmethod
     def warn(text: str) -> None:
-        the_logger.my_logger.warn(text)
+        Logger.print_console('WARN', text)
 
     @staticmethod
     def error(text: str) -> None:
-        the_logger.my_logger.error(text)
+        Logger.print_console('ERROR', text)
+
+    @staticmethod
+    def to_console(yesno: bool) -> None:
+        global use_console
+        use_console = yesno
 
     @staticmethod
     def init(filename: str='log.txt') -> None:
-        global the_logger
-        the_logger = Logger(filename)
+        global the_file
+        the_file = open(filename, 'w')
         Logger.info(f"Logger initialised at {datetime.datetime.now()}")
         
 

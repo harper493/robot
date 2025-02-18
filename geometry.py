@@ -34,6 +34,7 @@ def cosine_rule(l1: float, l2: float, opposite: float) -> float:
     result = dacos((l1*l1 + l2*l2 - opposite*opposite) / (2*l1*l2))
     if result < -360:
         print(f'cosine_rule {l1} {l2} {opposite}')
+        result = 90
     return result
 
 def included_angle(x0, y0, x1, y1, x2, y2) :

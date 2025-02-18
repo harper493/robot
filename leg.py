@@ -77,7 +77,7 @@ class Leg:
         except ValueError as exc:
             Logger.error(f"leg '{self.which}' target{target} ({exc})")
             raise exc
-        Logger.info(f"goto leg' {self.which}' target{target} angles {self.angles}")
+        Logger.info(f"goto leg '{self.which}' target{target} angles {self.angles}")
         angles = self.angles if self.which[1]=='l' else -self.angles
         actions.append(self.servo_ids.cox, angles.cox)
         actions.append(self.servo_ids.femur, angles.femur)
@@ -97,7 +97,7 @@ class Leg:
                 p1 = (Line(self.start, self.dest)
                       .bisect()
                       .replace_z(self.start.z() + self.height))
-                Logger.info(f'p1 {p1} start {self.start} dest {self.dest}')
+                Logger.info(f'lift leg {self.which} p1 {p1} start {self.start} dest {self.dest}')
                 self.goto(p1, actions)
             case StepPhase.drop:
                 self.goto((self.dest).replace_z(self.dest.z() + self.clear_height), actions)
@@ -140,7 +140,6 @@ class QuadLeg(Leg):
         try:
             result = self.get_femur_tibia(Point2D(toe_pos.x(), -toe_pos.z() / dcos(cox)))
         except ValueError as exc:
-            print(f'{exc} toe_pos {toe_pos}')
             raise exc
         result.cox = cox + 90
         return result

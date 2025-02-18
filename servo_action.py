@@ -42,7 +42,7 @@ class ServoActionList:
                     pos = self.get_position(chan) + (d / iterations)
                 Servo.get(chan).set_angle(pos)
                 self.positions[chan] = pos
-                time.sleep(1.0 / self.speed)
+                #time.sleep(1.0 / self.speed)
         self.actions = {}
 
     def get_position(self, chan: int) -> float:

@@ -7,6 +7,7 @@ import json
 from control import Control
 from dataclasses import dataclass
 from collections.abc import Callable
+from logger import Logger
 
 leg_map = { 'fl':2, 'rl':5, 'rr': 8, 'fr':11 }
 servo_map = { 'fl':2, 'rl':5, 'rr': 10, 'fr':13, 'h':15 }
@@ -32,6 +33,7 @@ class CommandInterpreter:
         CommandInfo('set', 'set', 'modify parameter'),
         CommandInfo('show', 'sh', 'show something'),
         CommandInfo('turn', 't', 'walk while turning: turn distance angle [direction]'),
+        CommandInfo('verbose', 'v', 'set verbosity level'),        
         CommandInfo('walk', 'w', 'walk in straight line: walk distance [direction]'),
         )
 
@@ -88,6 +90,17 @@ class CommandInterpreter:
     def do_servo(self) -> None:
         self.check_args(2)
         self.control.set_servo(self.words[1], self.words[2])
+
+    def do_turn(self) -> None:
+        self.check_args(2, 3)
+        dist = self.get_float_arg(1)
+        turn = self.get_float_arg(2)
+        dir = self.get_float_arg(3) if len(self.words) > 3 else 0
+        self.control.walk(dist, dir) # needs to be updated
+
+    def do_verbose(self) -> None:
+        self.check_args(1)
+        Logger.to_console(bool(self.get_float_arg(1)))
 
     def do_walk(self) -> None:
         self.check_args(1, 2)
