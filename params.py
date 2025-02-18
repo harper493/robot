@@ -43,13 +43,14 @@ defaults = {
 class ParamGroup:
 
     def __init__(self, _filename: str):
-        self.filename = _filename
-        try:
-            with open(self.filename) as f:
-                self.values = { name:self._parse_value(value) for name,value in json.loads(f.read()).items() }
-        except:
-            self.values = copy(defaults)
-            self.save()
+        if _filename:
+            self.filename = _filename
+            try:
+                with open(self.filename) as f:
+                    self.values = { name:self._parse_value(value) for name,value in json.loads(f.read()).items() }
+            except FileNotFoundError:
+                self.values = copy(defaults)
+                self.save()
 
     def get(self, pname: str) -> float:
         result = self.values.get(pname)
@@ -94,6 +95,8 @@ class ParamGroup:
             return float(value)
         except ValueError:
             return value
+
+the_params = ParamGroup('')
 
 class Params:
     

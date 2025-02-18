@@ -1,5 +1,6 @@
 #coding:utf-8
 
+from __future__ import annotations
 import time
 import re
 import json
@@ -10,8 +11,6 @@ from collections.abc import Callable
 leg_map = { 'fl':2, 'rl':5, 'rr': 8, 'fr':11 }
 servo_map = { 'fl':2, 'rl':5, 'rr': 10, 'fr':13, 'h':15 }
 joint_map = { 'h':2, 't':1, 'k':0 }
-angles = {}
-calibration = {}
 
 calib_filename = 'calib.txt'
 
@@ -39,8 +38,8 @@ class CommandInterpreter:
     def __init__(self, c: Control):
         self.control = c
 
-    def find_keyword(self, commands: tuple[CommandInfo], cmd: str, fn_prefix: str) \
-        -> Callable[[list[str]], None] :
+    def find_keyword(self, commands: tuple[CommandInfo, ...], cmd: str, fn_prefix: str) \
+        -> Callable[[CommandInterpreter, list[str]], None] :
         for c in commands:
             if c.name.startswith(cmd) and cmd.startswith(c.abbrev):
                 return getattr(CommandInterpreter, fn_prefix+c.name)
@@ -55,7 +54,7 @@ class CommandInterpreter:
             raise ValueError(f"unknown or ambiguous command '{words[0]}'")
         (fn)(self, words)
 
-    def help(self, cmds: tuple[CommandInfo]) -> str:        
+    def help(self, cmds: tuple[CommandInfo, ...]) -> str:        
         return '\n'.join([ f'{c.name:8} {c.help}' for c in cmds ])
     
     def do_help(self, words: list[str]) -> None:

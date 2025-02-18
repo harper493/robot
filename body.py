@@ -3,7 +3,7 @@
 from __future__ import annotations
 from geometry import *
 import numpy as np
-from typing import Self
+from typing import Self, Type
 from dtrig import *
 from math import *
 from dataclasses import dataclass
@@ -29,13 +29,13 @@ class Body:
         self.absolute_position = Point()
         self.legs: dict[str, Leg] = {}
         self.gaits:dict[str, Gait_type] = OrderedDict()
-        self.default_gait: Gait_type = None
+        self.default_gait: Gait_type = None     #type: ignore[assignment]
         self.cur_gait: Gait_type
         self.step_iter = None
         self.height: float = Params.get('default_height')
         self.prev_stride = 0.0
 
-    def add_leg(self, type: Leg, which: str) -> None:
+    def add_leg(self, leg_type: Type, which: str) -> None:
         prefix = f'leg_{which}_'
         pos = Point(Params.get(prefix+'x'),
                     Params.get(prefix+'y'),
@@ -45,7 +45,7 @@ class Body:
                           int(Params.get(prefix+'servo_tibia')))
         femur = Params.get_or(prefix+'femur', Params.get('femur_length'))
         tibia = Params.get_or(prefix+'tibia', Params.get('tibia_length'))
-        self.legs[which] = QuadLeg(len(self.legs), which, pos, femur, tibia, servos)
+        self.legs[which] = leg_type(len(self.legs), which, pos, femur, tibia, servos)
 
     def add_gait(self, gname: str, descr: str) -> None:
         gait: Gait_type = []
@@ -135,7 +135,7 @@ class Body:
         try:
             fn = type_list[_type]
         except KeyError:
-            raise ValueError("unknown body type '{_type}")
+            raise ValueError("unknown body type '{_type}'")
         result = Body()
         fn(result)
         return result

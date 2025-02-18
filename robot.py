@@ -11,7 +11,7 @@ from command import CommandInterpreter
 try:
     import readline
 except ImportError :
-    readline = None
+    readline = None     #type: ignore[assignment]
 
 def run(control: Control) -> None:
     interpreter = CommandInterpreter(control)
