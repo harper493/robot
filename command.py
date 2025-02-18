@@ -89,6 +89,13 @@ class CommandInterpreter:
         self.check_args(2)
         self.control.set_servo(self.words[1], self.words[2])
 
+    def do_walk(self) -> None:
+        self.check_args(1, 2)
+        dist = self.get_float_arg(1)
+        dir = self.get_float_arg(2) if len(self.words) > 2 else 0
+        self.control.walk(dist, dir)
+        
+
 r"""
 def do_servo(cmd):
     do_servo_command(cmd)
