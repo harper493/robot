@@ -121,8 +121,10 @@ class PWMServo(Servo):
         self.position = angle
         command = round(self.map(self.true_angle, 0, 180, LOW_POS, HIGH_POS), 1)
         the_pwm.setPWM(self.channel, 0, int(command))
-        Logger.info(f'servo.set_angle {self.channel} {self.name.upper()} angle {round(angle, 1)}'
-                    f' {rev_angle=} calib {self.calibration} true angle {self.true_angle=} {command=}')
+        if False:
+            Logger.info(f'servo.set_angle {self.channel} {self.name.upper()} angle {round(angle, 1)}'
+                        f' {rev_angle=} calib {self.calibration} true angle {self.true_angle=}'
+                        f' {command=}')
 
 type_map = { 'pwm' : PWMServo,
              'none' : Servo,
