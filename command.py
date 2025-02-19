@@ -11,12 +11,6 @@ from logger import Logger
 from servo import Servo
 from params import Params
 
-leg_map = { 'fl':2, 'rl':5, 'rr': 8, 'fr':11 }
-servo_map = { 'fl':2, 'rl':5, 'rr': 10, 'fr':13, 'h':15 }
-joint_map = { 'h':2, 't':1, 'k':0 }
-
-calib_filename = 'calib.txt'
-
 @dataclass
 class CommandInfo:
     name: str

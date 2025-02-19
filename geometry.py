@@ -209,6 +209,21 @@ class Point:
         result.p[2] = zz
         return result
 
+    def reflect_x(self) -> Point:
+        result = self.copy()
+        result.p[0] = -result.p[0]
+        return result
+
+    def reflect_y(self) -> Point:
+        result = self.copy()
+        result.p[1] = -result.p[1]
+        return result
+
+    def reflect_z(self) -> Point:
+        result = self.copy()
+        result.p[2] = -result.p[1]
+        return result
+
 #
 # Transform class - a matrix representing a 3D transformation consisting of
 # a 3D rotation followed by a translation
@@ -315,6 +330,23 @@ class Transform:
     def replace_z(self, zz: float) -> Transform:
         result = self.copy()
         result.m[3][2] = zz
+        return result
+#
+# reflect_... - reflect in the other two planes
+#
+    def reflect_x(self) -> Transform:
+        result = self.copy()
+        result.m[3][0] = -result.m[3][0]
+        return result
+
+    def reflect_y(self) -> Transform:
+        result = self.copy()
+        result.m[3][1] = -result.m[3][1]
+        return result
+
+    def reflect_z(self) -> Transform:
+        result = self.copy()
+        result.m[3][2] = -result.m[3][2]
         return result
 #
 # in-situ update of translation

@@ -6,7 +6,7 @@ from geometry import *
 class Posture:
 
     def __init__(self, config: str):
-        self.transform = Transform.from_string(config)
+        self.transform = Transform.from_string(config).reflect_z()
 
     def __str__(self) -> str:
         return str(self.transform)

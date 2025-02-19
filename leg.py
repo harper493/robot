@@ -68,7 +68,7 @@ class Leg:
             raise ValueError(f'leg.get_femur_tibia: impossible position {toe_pos}')
         alpha = toe_pos.angle()
         beta = cosine_rule(h, self.femur, self.tibia)
-        result.femur = beta - alpha
+        result.femur = 90 - (beta - alpha)
         result.tibia = cosine_rule(self.tibia, self.femur, h)
         return result
 
