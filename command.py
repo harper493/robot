@@ -38,6 +38,7 @@ class CommandInterpreter:
         CommandInfo('legs', 'le', 'show leg and body positions'),
         CommandInfo('parameters', 'par', 'show parameter values or just one selected parameter'),
         CommandInfo('position', 'po', 'show body position'),
+        CommandInfo('servos', 'se', 'show state of all servos'),
     )
 
     def __init__(self, c: Control):
@@ -139,6 +140,10 @@ class CommandInterpreter:
     def show_position(self) -> None:
         self.check_args(1)
         print(f"Body position: {self.control.body.show_position()}")
+
+    def show_servos(self) -> None:
+        self.check_args(1)
+        print(Servo.show_servos())
 
         
         

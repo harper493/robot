@@ -51,7 +51,8 @@ class Leg:
         self.femur, self.tibia = _femur, _tibia
         self.servo_ids = _servo_ids
         rev = (self.which[1]=='r')
-        self.servos = { ch : Servo.enroll(ch, (rev ^ (name=='femur'))) for name,ch in self.servo_ids }
+        self.servos = { ch : Servo.enroll((self.which + name[0]), ch, (rev ^ (name=='femur')))
+                        for name,ch in self.servo_ids }
         self.position = Point()
         self.start = Point()
         self.angles = LegAngles()

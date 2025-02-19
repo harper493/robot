@@ -21,7 +21,8 @@ HIGH_POS = 512.0
     
 class Servo:
 
-    def __init__(self, chan: int, reverse: bool):
+    def __init__(self, name: str, chan: int, reverse: bool):
+        self.name = name
         self.position = 90.0
         self.channel = chan
         self.calibration = 0.0
@@ -42,13 +43,22 @@ class Servo:
     def adjust_angle(self, delta: float) -> None:
         self.set_angle(self.position + delta)
 
+    def calibrate(self) -> float:
+        self.calibration = self.position - 90 + self.calibration
+        return self.calibration
+
+    def show(self) -> str:
+        return (f"{self.name.upper():3} chan {str(self.channel) + ('R' if self.reverse else ' '):3}" +
+                f' angle {round(self.position, 1):6}' +
+                f' true angle {round(self.true_angle, 1):6} calib {round(self.calibration, 1):6}')
+
     @staticmethod
     def get(chan: int) -> Servo:
         return the_servos[chan]
 
     @staticmethod
-    def enroll(chan: int, reverse: bool) -> Servo:
-        the_servos[chan] = Servo.factory(chan, reverse)
+    def enroll(name: str, chan: int, reverse: bool) -> Servo:
+        the_servos[chan] = Servo.factory(name, chan, reverse)
         return the_servos[chan]
 
     @staticmethod
@@ -66,8 +76,8 @@ class Servo:
 
     @staticmethod
     def save_calibration(filename: str) -> None:
-        calibration = { s.channel : (s.position - 90 + s.calibration)
-                                     for s in the_servos.values() }
+        calibration = { s.channel : s.calibrate()
+                        for s in the_servos.values() }
         with open(filename, 'w') as f:
             f.write(json.dumps(calibration, indent=4))
             f.write('\n')
@@ -77,11 +87,11 @@ class Servo:
         Servo.get(chan).set_angle(angle)
 
     @staticmethod
-    def factory(chan: int, reverse: bool) -> Servo:
+    def factory(name: str, chan: int, reverse: bool) -> Servo:
         if servo_type:
-            return servo_type(chan, reverse)
+            return servo_type(name, chan, reverse)
         else:
-            return Servo(chan, reverse)
+            return Servo(name, chan, reverse)
 
     @staticmethod
     def set_servo_type(t: str) -> None:
@@ -97,26 +107,27 @@ class Servo:
 
     @staticmethod
     def show_servos() -> str:
-        return ', '.join([ str(s.channel) + ('R' if s.reverse else '') for s in the_servos.values() ])
+        return '\n'.join([ s.show() for s in the_servos.values() ])
 
 class PWMServo(Servo):
 
-    def __init__(self, chan: int, reverse: bool):
-        super(PWMServo, self).__init__(chan, reverse)
+    def __init__(self, name: str, chan: int, reverse: bool):
+        super(PWMServo, self).__init__(name, chan, reverse)
 
     def set_angle(self, angle: float) -> None:
-        rev_angle = 180 - angle if self.reverse else angle
-        true_angle = min(max(rev_angle, MIN_ANGLE), MAX_ANGLE) + self.calibration
+        calib_angle = angle + self.calibration
+        rev_angle = round(180 - calib_angle if self.reverse else calib_angle, 1)
+        self.true_angle = round(min(max(rev_angle, MIN_ANGLE), MAX_ANGLE), 1)
         self.position = angle
-        data = self.map(true_angle, 0, 180, LOW_POS, HIGH_POS)
-        the_pwm.setPWM(self.channel, 0, int(data))
+        command = round(self.map(self.true_angle, 0, 180, LOW_POS, HIGH_POS), 1)
+        the_pwm.setPWM(self.channel, 0, int(command))
+        Logger.info(f'servo.set_angle {self.channel} {self.name.upper()} angle {round(angle, 1)}'
+                    f' {rev_angle=} calib {self.calibration} true angle {self.true_angle=} {command=}')
 
 type_map = { 'pwm' : PWMServo,
              'none' : Servo,
              }
 
-                        
-            
        
         
         
