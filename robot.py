@@ -49,6 +49,7 @@ parameter_defaults = {
     "leg_rr_y" : "-50",
     "leg_rr_z" : "0",
     "gait_default" : "fl,rr,fr,rl",
+    "posture_stand" : "1.0 0.0 2.5 0 0 0"
     }    
 
 def run(control: Control) -> None:

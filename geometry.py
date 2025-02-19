@@ -222,23 +222,27 @@ class Transform:
             self.m = np.identity(4)
         else:
             self.m = other
-        for name, v in kwargs.items():
-            match name:
-                case 'x':
-                    self.m[3][0] = v
-                case 'y':
-                    self.m[3][1] = v
-                case 'z':
-                    self.m[3][2] = v
-                case 'xrot':
-                    self._copy_rotate(self @ Transform.xrot(v))
-                case 'yrot':
-                    self._copy_rotate(self @ Transform.yrot(v))
-                case 'zrot':
-                    self._copy_rotate(self @ Transform.zrot(v))
-                case _:
-                    raise NameError(f"unknown keyword arg '{name}' to Transform()")
+        if kwargs:
+            xlate = Point()
+            for name, v in kwargs.items():
+                match name:
+                    case 'x':
+                        xlate = xlate.replace_x(v)
+                    case 'y':
+                        xlate = xlate.replace_y(v)
+                    case 'z':
+                        xlate = xlate.replace_z(v)
+                    case 'xrot':
+                        self._copy_rotate(self @ Transform.xrot(v))
+                    case 'yrot':
+                        self._copy_rotate(self @ Transform.yrot(v))
+                    case 'zrot':
+                        self._copy_rotate(self @ Transform.zrot(v))
+                    case _:
+                        raise NameError(f"unknown keyword arg '{name}' to Transform()")
+            self.update_xlate(xlate)
             
+
 
     def copy(self) -> Transform:
         return Transform(self.m.copy())
@@ -313,6 +317,15 @@ class Transform:
         result.m[3][2] = zz
         return result
 #
+# in-situ update of translation
+#
+    def update_xlate(self, p: Point) -> Transform:
+        self.m[3][0] = p.x()
+        self.m[3][1] = p.y()
+        self.m[3][2] = p.z()
+        return self
+        
+#
 # get whole translation
 #
     def get_xlate(self) -> Point:
@@ -350,6 +363,23 @@ class Transform:
         c = dcos(angle)
         s = dsin(angle)
         return Transform(np.array([[c, -s, 0, 0], [s , c, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]))
+#
+# create from a string in the order x y z xrot yrot zrot
+#
+    @staticmethod
+    def from_string(config: str) -> Transform:
+        try:
+            data = [ float(v) for v in config.split() ]
+            if len(data) != 6:
+                data = []
+        except ValueError:
+            data = []
+        if data:
+            return Transform(x=data[0], y=data[1], z=data[2],
+                             xrot=data[3], yrot=data[4], zrot=data[5])
+        else:
+            raise ValueError(f"invalid transform specification '{config}'")
+            
 
 class Line:
     def __init__(self, p0: Point, p1: Point):

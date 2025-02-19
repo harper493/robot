@@ -64,6 +64,14 @@ class ParamGroup:
         except ValueError:
             return value
 
+    def make_dict[T](self, prefix: str, _class: type) -> dict[str,T]:
+        result = {}
+        for name,value in self.values.items():
+            nn = name.split('_')
+            if len(nn)==2 and nn[0]==prefix :
+                result[nn[1]] = _class(value)
+        return result
+
 the_params = ParamGroup('', {})
 
 class Params:
@@ -93,3 +101,8 @@ class Params:
     def load(filename: str, defaults: dict[str, str]) -> None:
         global the_params
         the_params = ParamGroup(filename, defaults)
+
+    @staticmethod
+    def make_dict[T](prefix: str, _class: type) -> dict[str,T]:
+        return the_params.make_dict(prefix, _class)
+    
