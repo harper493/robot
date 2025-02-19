@@ -76,7 +76,6 @@ def init() -> Control:
     Logger.init('log.txt')
     Servo.set_servo_type(Params.get_str('servo_type'))
     body = Body.make_body(Params.get_str('body_type'))
-    print(Servo.show_servos())
     Servo.load_calibration(Params.get_str('calibration_filename'))   # must come AFTER body creation
     return Control(body)
 

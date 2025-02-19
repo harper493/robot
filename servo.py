@@ -4,6 +4,7 @@ from __future__ import annotations
 from PCA9685 import PCA9685
 import time
 import json
+from logger import Logger
 
 the_servos: dict[int, Servo] = {}
 
@@ -105,7 +106,7 @@ class PWMServo(Servo):
     def set_angle(self, angle: float) -> None:
         rev_angle = 180 - angle if self.reverse else angle
         true_angle = min(max(rev_angle, MIN_ANGLE), MAX_ANGLE) + self.calibration
-        #print(self.channel, self.reverse, angle, self.calibration, true_angle)
+        Logger.info(f"servo {self.channel} {'R' if self.reverse else ''} angle {angle}")
         self.position = angle
         data = self.map(true_angle, 0, 180, LOW_POS, HIGH_POS)
         the_pwm.setPWM(self.channel, 0, int(data))

@@ -36,6 +36,7 @@ class CommandInterpreter:
 
     show_commands = (
         CommandInfo('legs', 'le', 'show leg and body positions'),
+        CommandInfo('parameters', 'par', 'show parameter values or just one selected parameter'),
         CommandInfo('position', 'po', 'show body position'),
     )
 
@@ -103,7 +104,6 @@ class CommandInterpreter:
         self.control.set_servo(s, v)
 
     def do_show(self) -> None:
-        self.check_args(1)
         fn = self.find_keyword(self.show_commands, self.words[1], 'show_')
         (fn)(self)
 
@@ -125,10 +125,19 @@ class CommandInterpreter:
         self.control.walk(dist, dir)
 
     def show_legs(self) -> None:
+        self.check_args(1)
         self.show_position()
         print(self.control.body.show_legs())
+
+    def show_parameters(self) -> None:
+        self.check_args(1, 2)
+        pname = '' if len(self.words) < 3 else self.words[2]
+        for p in sorted([ pp[0] for pp in Params.enumerate() ]):
+            if p==pname or not pname:
+                print(f"{p:20} {Params.get_str(p)}")
     
     def show_position(self) -> None:
+        self.check_args(1)
         print(f"Body position: {self.control.body.show_position()}")
 
         
