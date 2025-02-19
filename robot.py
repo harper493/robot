@@ -50,6 +50,7 @@ parameter_defaults = {
     "leg_rr_z" : "0",
     "gait_default" : "fl,rr,fr,rl",
     "posture_stand" : "1.0 0.0 2.5 0 0 0",
+    "posture_relax" : "2.3 0.0 2.0 0 0 0",
     "calibration_filename" : "calib.txt"
     }    
 

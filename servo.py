@@ -20,10 +20,11 @@ HIGH_POS = 512.0
     
 class Servo:
 
-    def __init__(self, chan: int, calib: float = 0.0):
+    def __init__(self, chan: int, reverse: bool):
         self.position = 90.0
         self.channel = chan
-        self.calibration = calib
+        self.calibration = 0.0
+        self.reverse = reverse
 #        
 #Convert the input angle to the value of pca9685
 #
@@ -41,17 +42,20 @@ class Servo:
 
     @staticmethod
     def get(chan: int) -> Servo:
-        try:
-            result = the_servos[chan]
-        except KeyError:
-            result = Servo.factory(chan)
-            the_servos[chan] = result
-        return result
+        return the_servos[chan]
+
+    @staticmethod
+    def enroll(chan: int, reverse: bool) -> Servo:
+        the_servos[chan] = Servo.factory(chan, reverse)
+        return the_servos[chan]
 
     @staticmethod
     def load_calibration(filename: str) -> None:
-        with open(filename) as f:
-            data = f.read()
+        try:
+            with open(filename) as f:
+                data = f.read()
+        except:
+            return
         for ch,v in json.loads(data).items():
             Servo.get(int(ch)).calibration = float(v)
 
@@ -68,14 +72,15 @@ class Servo:
         Servo.get(chan).set_angle(angle)
 
     @staticmethod
-    def factory(chan: int, calib: int = 0) -> Servo:
+    def factory(chan: int, reverse: bool) -> Servo:
         if servo_type:
-            return servo_type(chan, calib)
+            return servo_type(chan, reverse)
         else:
-            return Servo(chan, calib)
+            return Servo(chan, reverse)
 
     @staticmethod
     def set_servo_type(t: str) -> None:
+        global servo_type
         try: 
             servo_type = type_map[t]
         except KeyError:
@@ -83,13 +88,15 @@ class Servo:
 
 class PWMServo(Servo):
 
-    def __init__(self, chan: int, calib: float = 0.0):
-        super(PWMServo, self).__init__(chan, calib)
+    def __init__(self, chan: int, reverse: bool):
+        super(PWMServo, self).__init__(chan, reverse)
 
     def set_angle(self, angle: float) -> None:
-        angle = min(max(angle, MIN_ANGLE), MAX_ANGLE)
+        rev_angle = 180 - angle if self.reverse else angle
+        true_angle = min(max(rev_angle, MIN_ANGLE), MAX_ANGLE) + self.calibration
+        #print(self.channel, self.reverse, angle, self.calibration, true_angle)
         self.position = angle
-        data = self.map(angle, 0, 180, LOW_POS, HIGH_POS)
+        data = self.map(true_angle, 0, 180, LOW_POS, HIGH_POS)
         the_pwm.setPWM(self.channel, 0, int(data))
 
 type_map = { 'pwm' : PWMServo,

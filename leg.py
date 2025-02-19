@@ -3,7 +3,7 @@
 from __future__ import annotations
 from geometry import *
 import numpy as np
-from typing import Self
+from typing import Self, Iterator
 from dtrig import *
 from math import *
 from dataclasses import dataclass
@@ -32,6 +32,11 @@ class ServoIds:
     femur: int
     tibia: int
 
+    def __iter__(self) -> Iterator[int]:
+        yield self.cox
+        yield self.femur
+        yield self.tibia
+
 class StepPhase(Enum):
     clear = 1
     lift = 2
@@ -45,6 +50,7 @@ class Leg:
         self.number, self.location, self.which = _number, _location, _which
         self.femur, self.tibia = _femur, _tibia
         self.servo_ids = _servo_ids
+        self.servos = { ch : Servo.enroll(ch, self.which[1]=='r') for ch in self.servo_ids }
         self.position = Point()
         self.start = Point()
         self.angles = LegAngles()
@@ -78,10 +84,9 @@ class Leg:
             Logger.error(f"leg '{self.which}' target{target} ({exc})")
             raise exc
         Logger.info(f"goto leg '{self.which}' target{target} angles {self.angles}")
-        angles = self.angles if self.which[1]=='l' else -self.angles
-        actions.append(self.servo_ids.cox, angles.cox)
-        actions.append(self.servo_ids.femur, angles.femur)
-        actions.append(self.servo_ids.tibia, angles.tibia)
+        actions.append(self.servo_ids.cox, self.angles.cox)
+        actions.append(self.servo_ids.femur, self.angles.femur)
+        actions.append(self.servo_ids.tibia, self.angles.tibia)
         self.position = target
 
     def start_step(self, dest: Point, height: float) -> None:

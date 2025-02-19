@@ -64,7 +64,7 @@ class ParamGroup:
         except ValueError:
             return value
 
-    def make_dict[T](self, prefix: str, _class: type) -> dict[str,T]:
+    def make_dict(self, prefix: str, _class: type):
         result = {}
         for name,value in self.values.items():
             nn = name.split('_')
@@ -103,6 +103,6 @@ class Params:
         the_params = ParamGroup(filename, defaults)
 
     @staticmethod
-    def make_dict[T](prefix: str, _class: type) -> dict[str,T]:
+    def make_dict(prefix: str, _class: type):
         return the_params.make_dict(prefix, _class)
     

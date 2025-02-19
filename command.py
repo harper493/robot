@@ -96,11 +96,17 @@ class CommandInterpreter:
         self.control.set_posture(self.words[1])
 
     def do_save(self) -> None:
+        self.check_args(0)
         Servo.save_calibration(Params.get_str('calibration_filename'))
 
     def do_servo(self) -> None:
-        self.check_args(2)
-        self.control.set_servo(self.words[1], self.words[2])
+        self.check_args(1,2)
+        if len(self.words)==2:
+            m = re.match(r'^(.*?)([+-]?\d*)$', self.words[1])
+            s, v = m.groups()    #type: ignore[union-attr]
+        else:
+            s, v = self.words[1], self.words[2]
+        self.control.set_servo(s, v)
 
     def do_show(self) -> None:
         self.check_args(1)

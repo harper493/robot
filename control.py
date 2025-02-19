@@ -40,11 +40,11 @@ class Control:
                 sname = 'h'
             for s in self.body.get_servos(sname):
                 servo = Servo.get(s)
-                if diff is None:
-                    servo.set_angle(float(angle))
-                else:
+                if diff:
                     delta = float(diff + angle)
                     servo.adjust_angle(delta)
+                else:
+                    servo.set_angle(float(angle))
         elif m1 is None:
             raise ValueError(f"invalid servo identifier '{pos}'")
         else:

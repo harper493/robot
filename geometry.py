@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 import numpy as np
-import scipy    #type: ignore[import-untyped]
+import scipy    #type: ignore[import-untyped,import]
 from numpy import linalg
 from dtrig import *
 from math import *
