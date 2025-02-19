@@ -60,7 +60,7 @@ class Servo:
         calibration = { s.channel : (s.position - 90 + s.calibration)
                                      for s in the_servos.values() }
         with open(filename, 'w') as f:
-            f.write(json.dumps(calibration))
+            f.write(json.dumps(calibration, indent=4))
         f.write('\n')
 
     @staticmethod
@@ -76,7 +76,10 @@ class Servo:
 
     @staticmethod
     def set_servo_type(t: str) -> None:
-        servo_type = type_map[t] if t else Servo
+        try: 
+            servo_type = type_map[t]
+        except KeyError:
+            raise ValueError(f"unknown servo type '{t}'")
 
 class PWMServo(Servo):
 
@@ -89,7 +92,8 @@ class PWMServo(Servo):
         data = self.map(angle, 0, 180, LOW_POS, HIGH_POS)
         the_pwm.setPWM(self.channel, 0, int(data))
 
-type_map = { 'PWM' : PWMServo,
+type_map = { 'pwm' : PWMServo,
+             'none' : Servo,
              }
 
                         

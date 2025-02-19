@@ -51,7 +51,7 @@ class ParamGroup:
 
     def save(self) -> None:
         with open(self.filename, 'w') as f:
-            f.write(json.dumps(self.values))
+            f.write(json.dumps(self.values, indent=4))
             f.write('\n')
 
     def __iter__(self):

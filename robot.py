@@ -7,6 +7,7 @@ from body import *
 from params import *
 from leg import *
 from logger import Logger
+from servo import Servo
 from command import CommandInterpreter
 try:
     import readline
@@ -15,6 +16,7 @@ except ImportError :
 
 parameter_defaults = {
     "body_type" : "quad",
+    "servo_type" : "pwm",
     "clear_height" : "0.3",
     "default_step_height" : "0.5",
     "default_height" : "2.5",
@@ -69,6 +71,7 @@ def run(control: Control) -> None:
 def init() -> Control:
     Params.load('parameters.txt', parameter_defaults)
     Logger.init('log.txt')
+    Servo.set_servo_type(Params.get_str('servo_type'))
     body = Body.make_body(Params.get_str('body_type'))
     return Control(body)
 
