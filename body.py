@@ -26,7 +26,7 @@ class Body:
         self.legs: dict[str, Leg] = {}
         self.head_servo = 0
         self.gaits: dict[str, Gait] = Params.make_dict('gait', Gait)
-        self.postures: dict[str: Posture] = Params.make_dict('posture', Posture)
+        self.postures: dict[str, Posture] = Params.make_dict('posture', Posture)
         self.default_gait = self.gaits.get('default', next(iter(self.gaits.values())))
         self.cur_gait = self.default_gait
         self.step_iter = iter(self.cur_gait)
@@ -47,7 +47,7 @@ class Body:
 
     def set_gait(self, gname: str) -> None:
         self.cur_gait = self.gaits[gname]
-        self.step_iter = iter(self.gait)    #type: ignore[assignment]
+        self.step_iter = iter(self.cur_gait)    #type: ignore[assignment]
 
     def set_named_posture(self, pname: str) -> None:
         try:
