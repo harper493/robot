@@ -57,7 +57,10 @@ class Servo:
         except:
             return
         for ch,v in json.loads(data).items():
-            Servo.get(int(ch)).calibration = float(v)
+            try:
+                Servo.get(int(ch)).calibration = float(v)
+            except (KeyError, ValueError):
+                pass
 
     @staticmethod
     def save_calibration(filename: str) -> None:
@@ -85,6 +88,14 @@ class Servo:
             servo_type = type_map[t]
         except KeyError:
             raise ValueError(f"unknown servo type '{t}'")
+
+    @staticmethod
+    def get_servos() -> dict[int, Servo]:
+        return the_servos
+
+    @staticmethod
+    def show_servos() -> str:
+        return ', '.join([ str(s.channel) + ('R' if s.reverse else '') for s in the_servos.values() ])
 
 class PWMServo(Servo):
 

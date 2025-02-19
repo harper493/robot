@@ -32,10 +32,10 @@ class ServoIds:
     femur: int
     tibia: int
 
-    def __iter__(self) -> Iterator[int]:
-        yield self.cox
-        yield self.femur
-        yield self.tibia
+    def __iter__(self) -> Iterator[tuple[str,int]]:
+        yield ('cox', self.cox)
+        yield ('femur', self.femur)
+        yield ('tibia', self.tibia)
 
 class StepPhase(Enum):
     clear = 1
@@ -50,7 +50,8 @@ class Leg:
         self.number, self.location, self.which = _number, _location, _which
         self.femur, self.tibia = _femur, _tibia
         self.servo_ids = _servo_ids
-        self.servos = { ch : Servo.enroll(ch, self.which[1]=='r') for ch in self.servo_ids }
+        rev = (self.which[1]=='r')
+        self.servos = { ch : Servo.enroll(ch, (rev ^ (name=='femur'))) for name,ch in self.servo_ids }
         self.position = Point()
         self.start = Point()
         self.angles = LegAngles()
