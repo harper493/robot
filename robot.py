@@ -49,7 +49,8 @@ parameter_defaults = {
     "leg_rr_y" : "-50",
     "leg_rr_z" : "0",
     "gait_default" : "fl,rr,fr,rl",
-    "posture_stand" : "1.0 0.0 2.5 0 0 0"
+    "posture_stand" : "1.0 0.0 2.5 0 0 0",
+    "calibration_filename" : "calib.txt"
     }    
 
 def run(control: Control) -> None:
@@ -73,6 +74,7 @@ def init() -> Control:
     Params.load('parameters.txt', parameter_defaults)
     Logger.init('log.txt')
     Servo.set_servo_type(Params.get_str('servo_type'))
+    Servo.load_calibration(Params.get_str('calibration_filename'))
     body = Body.make_body(Params.get_str('body_type'))
     return Control(body)
 

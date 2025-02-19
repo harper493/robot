@@ -7,7 +7,6 @@ class Posture:
 
     def __init__(self, config: str):
         self.transform = Transform.from_string(config)
-        print(config, self.transform)
 
     def __str__(self) -> str:
         return str(self.transform)

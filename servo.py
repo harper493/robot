@@ -52,7 +52,7 @@ class Servo:
     def load_calibration(filename: str) -> None:
         with open(filename) as f:
             data = f.read()
-        for ch,v in json.loads(data):
+        for ch,v in json.loads(data).items():
             Servo.get(int(ch)).calibration = float(v)
 
     @staticmethod
@@ -61,7 +61,7 @@ class Servo:
                                      for s in the_servos.values() }
         with open(filename, 'w') as f:
             f.write(json.dumps(calibration, indent=4))
-        f.write('\n')
+            f.write('\n')
 
     @staticmethod
     def set_servo_angle(chan: int, angle: float) -> None:

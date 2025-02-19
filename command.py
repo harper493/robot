@@ -8,6 +8,8 @@ from control import Control
 from dataclasses import dataclass
 from collections.abc import Callable
 from logger import Logger
+from servo import Servo
+from params import Params
 
 leg_map = { 'fl':2, 'rl':5, 'rr': 8, 'fr':11 }
 servo_map = { 'fl':2, 'rl':5, 'rr': 10, 'fr':13, 'h':15 }
@@ -29,6 +31,7 @@ class CommandInterpreter:
         CommandInfo('leg', 'l', 'set leg position explicitly: leg leg-name x y z'),
         CommandInfo('posture', 'p', 'set static posture'),
         CommandInfo('quit', 'q', 'terminate program'),
+        CommandInfo('save', 'sav', 'save current position as calibration'),
         CommandInfo('servo', 'ser', 'modify servo position explicitly'),
         CommandInfo('set', 'set', 'modify parameter'),
         CommandInfo('show', 'sh', 'show something'),
@@ -91,6 +94,9 @@ class CommandInterpreter:
     def do_posture(self) -> None:
         self.check_args(1)
         self.control.set_posture(self.words[1])
+
+    def do_save(self) -> None:
+        Servo.save_calibration(Params.get_str('calibration_filename'))
 
     def do_servo(self) -> None:
         self.check_args(2)
