@@ -18,7 +18,6 @@ class ServoActionList:
     def __init__(self, _max_iter: int=10):
         self.max_iter, self.speed = _max_iter, Params.get('default_speed')
         self.actions: dict[int,float] = OrderedDict()
-        self.positions: dict[int,float] = {}
 
     def __str__(self) -> str:
         return '\n'.join([ f'{ch}: {round(a,1)}' for ch,a in self.actions.items() ])
@@ -30,28 +29,22 @@ class ServoActionList:
         self.actions[chan] = angle
 
     def exec(self) -> None:
-        #Logger.info(f'ServoAction actions {str(self)}')
-        deltas = { chan:(angle - self.get_position(chan)) for chan,angle in self.actions.items() }
+        Logger.info(f'ServoAction actions {str(self)}')
+        deltas = { chan:(angle - Servo.get(chan).get_position())
+                   for chan,angle in self.actions.items() }
         max_delta = max([ abs(d) for d in deltas.values() ])
         iterations = int((max_delta + self.max_iter - 1) // self.max_iter)
-        #Logger.info(f'ServoActon deltas:{deltas} max delta {max_delta} iterations {iterations}')
+        Logger.info(f'ServoActon deltas:{deltas} max delta {max_delta} iterations {iterations}')
         for i in range(iterations):
             for chan,d in deltas.items():
+                s = Servo.get(chan)
                 if i+1 == iterations:
                     pos = self.actions[chan]
                 else:
-                    pos = self.get_position(chan) + (d / iterations)
-                Servo.get(chan).set_angle(pos)
-                self.positions[chan] = pos
+                    pos = s.get_position() + (d / iterations)
+                s.set_angle(pos)
                 if self.speed:
                     time.sleep(1.0 / self.speed)
         self.actions = {}
-
-    def get_position(self, chan: int) -> float:
-        p = self.positions.get(chan, None)
-        if p is None:
-            p = 90
-            self.positions[chan] = p
-        return p
 
         

@@ -33,9 +33,10 @@ class Servo:
         return (toHigh-toLow)*(value-fromLow) / (fromHigh-fromLow) + toLow
 
     def set_angle(self, angle: float) -> None:
+        self.position = angle
         pass
 
-    def get_angle(self) -> float:
+    def get_position(self) -> float:
         return self.position
 
     def adjust_angle(self, delta: float) -> None:
@@ -106,7 +107,6 @@ class PWMServo(Servo):
     def set_angle(self, angle: float) -> None:
         rev_angle = 180 - angle if self.reverse else angle
         true_angle = min(max(rev_angle, MIN_ANGLE), MAX_ANGLE) + self.calibration
-        Logger.info(f"servo {self.channel} {'R' if self.reverse else ''} angle {angle}")
         self.position = angle
         data = self.map(true_angle, 0, 180, LOW_POS, HIGH_POS)
         the_pwm.setPWM(self.channel, 0, int(data))
