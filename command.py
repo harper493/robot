@@ -50,6 +50,9 @@ class CommandInterpreter:
         CommandInfo('step', 'st', 'enable or disable single-step mode'),
         )
 
+    help_texts = {
+        }
+
     def __init__(self, c: Control):
         self.control = c
         self.words: list[str] = []
@@ -73,7 +76,7 @@ class CommandInterpreter:
         (fn)(self)
 
     def help(self, cmds: tuple[CommandInfo, ...]) -> str:
-        return '\n'.join([ f'{c.name:8} {c.help}' for c in cmds ])
+        return '\n'.join([ f'{c.name:10} {c.help}' for c in cmds ])
 
     def pause(self) -> None:
         if self.step_mode:
@@ -94,7 +97,22 @@ class CommandInterpreter:
             raise ValueError(f"expected number, not '{self.words[arg]}'")
                 
     def do_help(self) -> None:
-        print(self.help(CommandInterpreter.the_commands))
+        self.check_args(0, 1)
+        cmds = None
+        if len(self.words) > 1:
+            key = self.words[1]
+            ht = CommandInterpreter.help_texts.get(key, None)
+            if ht:
+                print(ht)
+                return
+            else:
+                cmds = getattr(CommandInterpreter, key+'_commands', None)
+        else:
+            cmds = CommandInterpreter.the_commands
+        if cmds:            
+            print(self.help(cmds))
+        else:
+            print(f"Sorry, no help available for '{self.words[1]}'")
 
     def do_quit(self) -> None:
         raise StopIteration()
