@@ -1,3 +1,4 @@
+
 #coding:utf-8
 
 from __future__ import annotations
@@ -10,6 +11,9 @@ class PlatformBase:
 
     def get_platform_info(self) -> str:
         return 'Platform type: Software only running on Linux'
+
+    def get_model_info(self) -> str:
+        return ''
 
 class Platform:
 
@@ -36,21 +40,31 @@ class Platform:
     def get_type() -> str:
         try:
             with open('/proc/device-tree/serial-number') as f:
-                serial = f.read()
+                serial = f.read()[:-1]
         except:
             serial = ''
         if serial=='100000000432b6fc':
-            return 'quad'
+            result = 'quad'
         else:
-            return 'none'
+            result = 'none'
+        return result
 
-class PlatformQuad(PlatformBase):
+class PlatformRaspberryPi(PlatformBase):    
+
+    def get_model_info(self) -> str:
+        try:
+            with open('/proc/device-tree/model') as f:
+                return f.read()[:-1]
+        except:
+            return ''
+
+class PlatformQuad(PlatformRaspberryPi):
 
     def get_battery_level(self) -> Float:
         return ADS7830().readAdc(0)/255 * 10
 
     def get_platform_info(self) -> str:
-        return 'Platform type: Freenove Quadraped running on Raspberry Pi'
+        return f'Platform type: Freenove Quadraped running on {self.get_model_info()}'
 
 platform_types = {
     "quad" : PlatformQuad,
