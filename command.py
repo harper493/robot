@@ -10,6 +10,7 @@ from collections.abc import Callable
 from logger import Logger
 from servo import Servo
 from params import Params
+from platform import Platform
 
 @dataclass
 class CommandInfo:
@@ -37,8 +38,10 @@ class CommandInterpreter:
         )
 
     show_commands = (
+        CommandInfo('battery', 'bat', 'show battery level'),
         CommandInfo('legs', 'le', 'show leg and body positions'),
         CommandInfo('parameters', 'par', 'show parameter values or just one selected parameter'),
+        CommandInfo('platform', 'pla', 'show hardware platform info'),
         CommandInfo('position', 'po', 'show body position'),
         CommandInfo('servos', 'se', 'show state of all servos'),
     )
@@ -144,10 +147,16 @@ class CommandInterpreter:
         self.check_args(0, 1)
         self.step_mode = bool(self.get_float_arg(1)) if len(self.words) > 1 else True
 
+    def show_battery(self) -> None:
+        print(f"Battery level: {Platform.get_battery_level():.2f} V")
+
     def show_legs(self) -> None:
         self.check_args(1)
         self.show_position()
         print(self.control.body.show_legs())
+
+    def show_platform(self) -> None:
+        print(Platform.get_platform_info())
 
     def show_parameters(self) -> None:
         self.check_args(1, 2)

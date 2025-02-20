@@ -9,6 +9,8 @@ from leg import *
 from logger import Logger
 from servo import Servo
 from command import CommandInterpreter
+from platform import Platform
+
 try:
     import readline
 except ImportError :
@@ -52,7 +54,7 @@ parameter_defaults = {
     "posture_stand" : "1.0 0.0 2.5 0 0 0",
     "posture_relax" : "2.3 0.0 2.0 0 0 0",
     "calibration_filename" : "calib.txt"
-    }    
+    }
 
 def run(control: Control) -> None:
     interpreter = CommandInterpreter(control)
@@ -74,6 +76,7 @@ def run(control: Control) -> None:
 def init() -> Control:
     Params.load('parameters.txt', parameter_defaults)
     Logger.init('log.txt')
+    Platform.factory()
     Servo.set_servo_type(Params.get_str('servo_type'))
     body = Body.make_body(Params.get_str('body_type'))
     Servo.load_calibration(Params.get_str('calibration_filename'))   # must come AFTER body creation

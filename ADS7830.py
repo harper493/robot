@@ -1,9 +1,16 @@
-import smbus
+try:
+        import smbus as smb
+except ImportError:
+        try:
+                import smbus2 as smb
+        except ImportError:
+                pass
+        
 import time
 class ADS7830:
 	def __init__(self):
 		# Get I2C bus
-		self.bus = smbus.SMBus(1)
+		self.bus = smb.SMBus(1)
 		# I2C address of the device
 		self.ADS7830_DEFAULT_ADDRESS			= 0x48
 		# ADS7830 Command Set
