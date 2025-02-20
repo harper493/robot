@@ -85,6 +85,7 @@ class Body:
             return []
     
     def step(self, stride_tfm: Transform, height: float) -> None:
+        from command import CommandInterpreter
         stride = stride_tfm.get_xlate()
         lift_legs = [ self.legs[ll] for ll in next(self.step_iter) ]    #type: ignore[call-overload]
         other_legs = [ ll for ll in self.legs.values() if ll not in lift_legs ]
@@ -98,24 +99,33 @@ class Body:
         for ll in lift_legs:
             ll.step(StepPhase.clear, actions)
         actions.exec()
+        CommandInterpreter.the_command.pause()
         for ll in lift_legs:
             ll.step(StepPhase.lift, actions)
         for ll in other_legs:
             ll.move_by(unstride, actions)
         actions.exec()
+        CommandInterpreter.the_command.pause()
         for ll in lift_legs:
             ll.step(StepPhase.drop, actions)
         for ll in other_legs:
             ll.move_by(unstride, actions)
         actions.exec()
+        CommandInterpreter.the_command.pause()
         for ll in lift_legs:
             ll.step(StepPhase.pose, actions)
         actions.exec()
+        CommandInterpreter.the_command.pause()
         self.position = self.position + stride
         Logger.info(f'body position {self.position}')
         for ll in self.legs.values():
             ll.end_step()
             Logger.info(f'leg {ll.which} toe position {ll.position}')
+
+    def pause(self) -> None:
+        from command import CommandInterpreter
+        ci = CommandInterpreter.the_command
+        ci.pause()
 
     def build_quad(self):
         for w in ('fl','fr', 'rl', 'rr'):
