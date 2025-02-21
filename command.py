@@ -20,10 +20,10 @@ class CommandInfo:
 
 class CommandInterpreter:
 
-    the_command: CommandInterpreter = None    #type: ignore[assign]
+    the_command: CommandInterpreter = None    #type: ignore[assignment]
 
     the_commands = (
-        CommandInfo('height', 'he', 'set height'),
+        CommandInfo('height', 'hei', 'set height'),
         CommandInfo('help', 'h', 'get help'),
         CommandInfo('leg', 'l', 'set leg position explicitly: leg leg-name x y z'),
         CommandInfo('posture', 'p', 'set static posture'),
@@ -50,7 +50,7 @@ class CommandInterpreter:
         CommandInfo('pause', 'pa', 'enable or disable single-step mode'),
         )
 
-    help_texts = {
+    help_texts: dict[str,str] = {
         }
 
     def __init__(self, c: Control):
@@ -59,18 +59,21 @@ class CommandInterpreter:
         self.pause_mode = False
         CommandInterpreter.the_command = self
 
-    def find_keyword(self, commands: tuple[CommandInfo, ...], cmd: str, fn_prefix: str) \
-        -> Callable[[CommandInterpreter], None] :
+    def find_keyword(self, commands: tuple[CommandInfo, ...], cmd: str) -> CommandInfo :
         for c in commands:
             if c.name.startswith(cmd) and cmd.startswith(c.abbrev):
-                return getattr(CommandInterpreter, fn_prefix+c.name)
+                return c
         else:
-            raise ValueError(f"unknown or ambiguous keyword '{cmd}'")        
+            raise ValueError(f"unknown or ambiguous keyword '{cmd}'")
+
+    def find_keyword_fn(self, commands: tuple[CommandInfo, ...], cmd: str, fn_prefix: str) \
+        -> Callable[[CommandInterpreter], None] :
+        return getattr(CommandInterpreter, fn_prefix + self.find_keyword(commands, cmd).name)
 
     def execute(self, line: str) -> None:
         self.words = line.lower().split()
         try:
-            fn = self.find_keyword(CommandInterpreter.the_commands, self.words[0], 'do_')
+            fn = self.find_keyword_fn(CommandInterpreter.the_commands, self.words[0], 'do_')
         except ValueError:
             raise ValueError(f"unknown or ambiguous command '{self.words[0]}'")
         (fn)(self)
@@ -109,6 +112,11 @@ class CommandInterpreter:
                 return
             else:
                 cmds = getattr(CommandInterpreter, key+'_commands', None)
+            if ht is None:
+                try:
+                    cmds = tuple([ self.find_keyword(self.the_commands, self.words[1]) ])
+                except ValueError:
+                    pass
         else:
             cmds = CommandInterpreter.the_commands
         if cmds:            
@@ -123,6 +131,13 @@ class CommandInterpreter:
         self.check_args(1)
         self.control.set_height(self.get_float_arg(1))
 
+    def do_leg(self) -> None:
+        self.check_args(4)
+        self.control.body.set_leg_position(self.words[1],
+                                           self.get_float_arg(2),
+                                           self.get_float_arg(3),
+                                           -abs(self.get_float_arg(4)))
+
     def do_posture(self) -> None:
         self.check_args(1)
         self.control.set_posture(self.words[1])
@@ -132,7 +147,7 @@ class CommandInterpreter:
         Servo.save_calibration(Params.get_str('calibration_filename'))
 
     def do_set(self) -> None:
-        (self.find_keyword(self.set_commands, self.words[1], 'set_'))(self)        
+        (self.find_keyword_fn(self.set_commands, self.words[1], 'set_'))(self)        
 
     def do_servo(self) -> None:
         self.check_args(1,2)
@@ -144,7 +159,7 @@ class CommandInterpreter:
         self.control.set_servo(s, v)
 
     def do_show(self) -> None:
-        (self.find_keyword(self.show_commands, self.words[1], 'show_'))(self)
+        (self.find_keyword_fn(self.show_commands, self.words[1], 'show_'))(self)
 
     def do_turn(self) -> None:
         self.check_args(2, 3)

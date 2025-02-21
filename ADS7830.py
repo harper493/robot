@@ -1,5 +1,5 @@
 try:
-        import smbus as smb
+        import smbus as smb    #type: ignore[import-not-found]
 except ImportError:
         try:
                 import smbus2 as smb

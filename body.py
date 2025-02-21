@@ -69,7 +69,13 @@ class Body:
                 ll.move_by(delta, actions)
             actions.exec()
             self.height = height
-            
+
+    def set_leg_position(self, name: str, x: float, y: float, z:float) -> None:
+        ll = self.get_leg(name)
+        actions = ServoActionList()
+        ll.goto(Point(x, y, z), actions)
+        actions.exec()
+        
     def get_step_count(self) -> int:
         return self.cur_gait.get_step_count()
 
@@ -83,6 +89,12 @@ class Body:
                          and (name[1]=='*' or name[1]==ll.which[1])]
         else:
             return []
+
+    def get_leg(self, name: str) -> Leg:
+        try:
+            return self.legs[name]
+        except KeyError:
+            raise ValueError(f"unknown leg '{name}'")
     
     def step(self, stride_tfm: Transform, height: float) -> None:
         from command import CommandInterpreter

@@ -27,6 +27,7 @@ class Servo:
         self.channel = chan
         self.calibration = 0.0
         self.reverse = reverse
+        self.true_angle = 0.0
 #        
 #Convert the input angle to the value of pca9685
 #

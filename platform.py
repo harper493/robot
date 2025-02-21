@@ -17,10 +17,10 @@ class PlatformBase:
 
 class Platform:
 
-    the_platform: Platform
+    the_platform: PlatformBase
 
     @staticmethod
-    def factory(_type: str='') -> Platform:
+    def factory(_type: str='') -> PlatformBase:
         try:
             Platform.the_platform = (platform_types[_type or Platform.get_type()])()
             return Platform.the_platform
@@ -60,7 +60,7 @@ class PlatformRaspberryPi(PlatformBase):
 
 class PlatformQuad(PlatformRaspberryPi):
 
-    def get_battery_level(self) -> Float:
+    def get_battery_level(self) -> float:
         return ADS7830().readAdc(0)/255 * 10
 
     def get_platform_info(self) -> str:
