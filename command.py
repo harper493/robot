@@ -47,7 +47,7 @@ class CommandInterpreter:
     )
 
     set_commands = (
-        CommandInfo('step', 'st', 'enable or disable single-step mode'),
+        CommandInfo('pause', 'st', 'enable or disable single-step mode'),
         )
 
     help_texts = {
@@ -79,7 +79,7 @@ class CommandInterpreter:
         return '\n'.join([ f'{c.name:10} {c.help}' for c in cmds ])
 
     def pause(self) -> None:
-        if self.step_mode:
+        if self.pause_mode:
             print('press return to continue: ')
             input()
 
@@ -161,9 +161,9 @@ class CommandInterpreter:
         dir = self.get_float_arg(2) if len(self.words) > 2 else 0
         self.control.walk(dist, dir)
 
-    def set_step(self) -> None:
+    def set_pause(self) -> None:
         self.check_args(0, 1)
-        self.step_mode = bool(self.get_float_arg(1)) if len(self.words) > 1 else True
+        self.pause_mode = bool(self.get_float_arg(1)) if len(self.words) > 1 else True
 
     def show_battery(self) -> None:
         print(f"Battery level: {Platform.get_battery_level():.2f} V")
