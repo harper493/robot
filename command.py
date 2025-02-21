@@ -47,7 +47,7 @@ class CommandInterpreter:
     )
 
     set_commands = (
-        CommandInfo('pause', 'st', 'enable or disable single-step mode'),
+        CommandInfo('pause', 'pa', 'enable or disable single-step mode'),
         )
 
     help_texts = {
@@ -56,7 +56,7 @@ class CommandInterpreter:
     def __init__(self, c: Control):
         self.control = c
         self.words: list[str] = []
-        self.step_mode = False
+        self.pause_mode = False
         CommandInterpreter.the_command = self
 
     def find_keyword(self, commands: tuple[CommandInfo, ...], cmd: str, fn_prefix: str) \
@@ -78,10 +78,12 @@ class CommandInterpreter:
     def help(self, cmds: tuple[CommandInfo, ...]) -> str:
         return '\n'.join([ f'{c.name:10} {c.help}' for c in cmds ])
 
-    def pause(self) -> None:
+    def pause(self) -> bool:
         if self.pause_mode:
-            print('press return to continue: ')
+            print('press return to continue: ', end='')
             input()
+            print('\n')
+        return self.pause_mode
 
     def check_args(self, minargs: int, maxargs: int = -1) -> None:
         if len(self.words) < minargs + 1:
@@ -163,7 +165,7 @@ class CommandInterpreter:
 
     def set_pause(self) -> None:
         self.check_args(0, 1)
-        self.pause_mode = bool(self.get_float_arg(1)) if len(self.words) > 1 else True
+        self.pause_mode = bool(self.get_float_arg(1)) if len(self.words) > 2 else True
 
     def show_battery(self) -> None:
         print(f"Battery level: {Platform.get_battery_level():.2f} V")

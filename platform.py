@@ -43,7 +43,6 @@ class Platform:
                 serial = f.read()[:-1]
         except:
             serial = ''
-        print(serial)
         if serial=='100000000432b6fc':
             result = 'quad'
         else:

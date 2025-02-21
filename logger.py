@@ -60,7 +60,7 @@ class Logger:
     def init(filename: str='log.txt') -> None:
         global the_file
         the_file = open(filename, 'w')
-        Logger.info(f"Logger initialised at {datetime.datetime.now()}")
+        Logger.info(f"\n\nLogger initialised at {datetime.datetime.now()}")
         
 
         
