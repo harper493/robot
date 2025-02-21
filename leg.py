@@ -51,7 +51,7 @@ class Leg:
         self.femur, self.tibia = _femur, _tibia
         self.servo_ids = _servo_ids
         rev = (self.which[1]=='r')
-        self.servos = { ch : Servo.enroll((self.which + name[0]), ch, (rev ^ (name=='femur')))
+        self.servos = { ch : Servo.enroll((self.which + name[0]), ch, ((not rev) ^ (name=='cox')))
                         for name,ch in self.servo_ids }
         self.position = Point()
         self.start = Point()
@@ -71,6 +71,7 @@ class Leg:
         beta = cosine_rule(h, self.femur, self.tibia)
         result.femur = 90 - (beta - alpha)
         result.tibia = cosine_rule(self.tibia, self.femur, h)
+        #print(f'femur_tibia pos {toe_pos} {h=} {alpha=} {beta=} angles {result}')
         return result
 
     def get_toe_pos_2D(self, angles: LegAngles) -> Point2D:
