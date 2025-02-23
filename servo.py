@@ -23,7 +23,7 @@ class Servo:
 
     def __init__(self, name: str, chan: int, reverse: bool):
         self.name = name
-        self.position = 90.0
+        self.position = 91.0
         self.channel = chan
         self.calibration = 0.0
         self.reverse = reverse
@@ -36,7 +36,6 @@ class Servo:
 
     def set_angle(self, angle: float) -> None:
         self.position = angle
-        pass
 
     def get_position(self) -> float:
         return self.position

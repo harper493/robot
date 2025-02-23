@@ -22,6 +22,13 @@ class ServoActionList:
     def __str__(self) -> str:
         return ', '.join([ f'{ch}: {round(a,1)}' for ch,a in self.actions.items() ])
 
+    def __enter__(self) -> None:
+        return self
+
+    def __exit__(self, _type, value, traceback) -> None:
+        if _type is None:
+            self.exec()
+
     def __len__(self) -> int:
         return len(self.actions)
 

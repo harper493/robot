@@ -11,6 +11,7 @@ from enum import Enum
 from params import Params
 from servo_action import *
 from leg import *
+from head import *
 from posture import Posture
 from gait import Gait
 import itertools
@@ -19,7 +20,7 @@ from collections import OrderedDict
 
 class Body:
 
-    def __init__(self, height: float=0.0):
+    def __init__(self):
         self.position = Point()
         self.attitude = Transform()
         self.absolute_position = Point()
@@ -32,8 +33,9 @@ class Body:
         self.step_iter = iter(self.cur_gait)
         self.height: float = Params.get('default_height')
         self.prev_stride = 0.0
+        self.build()
 
-    def add_leg(self, leg_type: Type, which: str) -> None:
+    def add_leg_base(self, leg_type: Type, which: str) -> Leg:
         prefix = f'leg_{which}_'
         pos = Point(Params.get(prefix+'x'),
                     Params.get(prefix+'y'),
@@ -44,6 +46,7 @@ class Body:
         femur = Params.get_or(prefix+'femur', Params.get('femur_length'))
         tibia = Params.get_or(prefix+'tibia', Params.get('tibia_length'))
         self.legs[which] = leg_type(len(self.legs), which, pos, femur, tibia, servos)
+        return self.legs[which]
 
     def set_gait(self, gname: str) -> None:
         self.cur_gait = self.gaits[gname]
@@ -54,27 +57,24 @@ class Body:
             self.posture = self.postures[pname]
         except KeyError:
             raise ValueError(f"unknown posture '{pname}'")
-        actions = ServoActionList()
-        for ll in self.legs.values():
-            pos = self.posture.get_xlate()
-            ll.set_rest_position(pos)
-            ll.goto(pos, actions)
-        actions.exec()
+        with ServoActionList() as actions:
+            for ll in self.legs.values():
+                pos = self.posture.get_xlate()
+                ll.set_rest_position(pos)
+                ll.goto(pos, actions)
 
     def set_body_height(self, height: float) -> None:
         if height != self.height:
-            actions = ServoActionList()
-            delta = Point(0, 0, -(height - self.height))
-            for ll in self.legs.values():
-                ll.move_by(delta, actions)
-            actions.exec()
+            with ServoActionList() as actions:
+                delta = Point(0, 0, -(height - self.height))
+                for ll in self.legs.values():
+                    ll.move_by(delta, actions)
             self.height = height
 
     def set_leg_position(self, name: str, x: float, y: float, z:float) -> None:
         ll = self.get_leg(name)
-        actions = ServoActionList()
-        ll.goto(Point(x, y, z), actions)
-        actions.exec()
+        with ServoActionList() as actions:
+            ll.goto(Point(x, y, z), actions)
         
     def get_step_count(self) -> int:
         return self.cur_gait.get_step_count()
@@ -95,6 +95,9 @@ class Body:
             return self.legs[name]
         except KeyError:
             raise ValueError(f"unknown leg '{name}'")
+
+    def set_head_pos(self, angle: float, actions: ServoActionList) -> None:
+        self.head.goto(angle, actions)
     
     def step(self, stride_tfm: Transform, height: float) -> None:
         from command import CommandInterpreter
@@ -105,28 +108,27 @@ class Body:
         dest = stride / 2
         Logger.info(f'starting step at {self.position}')
         Logger.info(f'...stride {stride} unstride {unstride}')
-        actions = ServoActionList()
-        for ll in lift_legs:
-            ll.start_step(dest + ll.rest_position, height)
-        for ll in lift_legs:
-            ll.step(StepPhase.clear, actions)
-        actions.exec()
+        with ServoActionList() as actions:
+            for ll in lift_legs:
+                ll.start_step(dest + ll.rest_position, height)
+            for ll in lift_legs:
+                ll.step(StepPhase.clear, actions)
         CommandInterpreter.the_command.pause()
-        for ll in lift_legs:
-            ll.step(StepPhase.lift, actions)
-        for ll in other_legs:
-            ll.move_by(unstride, actions)
-        actions.exec()
+        with ServoActionList() as actions:
+            for ll in lift_legs:
+                ll.step(StepPhase.lift, actions)
+            for ll in other_legs:
+                ll.move_by(unstride, actions)
         CommandInterpreter.the_command.pause()
-        for ll in lift_legs:
-            ll.step(StepPhase.drop, actions)
-        for ll in other_legs:
-            ll.move_by(unstride, actions)
-        actions.exec()
+        with ServoActionList() as actions:
+            for ll in lift_legs:
+                ll.step(StepPhase.drop, actions)
+            for ll in other_legs:
+                ll.move_by(unstride, actions)
         CommandInterpreter.the_command.pause()
-        for ll in lift_legs:
-            ll.step(StepPhase.pose, actions)
-        actions.exec()
+        with ServoActionList() as actions:
+            for ll in lift_legs:
+                ll.step(StepPhase.pose, actions)
         CommandInterpreter.the_command.pause()
         self.position = self.position + stride
         Logger.info(f'body position {self.position}')
@@ -139,16 +141,14 @@ class Body:
         ci = CommandInterpreter.the_command
         ci.pause()
 
-    def build_quad(self):
-        for w in ('fl','fr', 'rl', 'rr'):
-            self.add_leg(QuadLeg, w)
-        actions = ServoActionList()
-        for ll in self.legs.values():
-            ll.goto(Point(ll.tibia, 0, -ll.femur), actions)
-        actions.exec()
+    def build(self) -> None:
+        self.build_base()
+
+    def build_base(self) -> None:
+        self.head = Head.make_head(Params.get_str('head_type'), [ int(Params.get('head_servo')) ])
 
     def show_position(self) -> str:
-        return str(self.position)
+        return f"{str(self.position)} Head angle: {self.head.get_position()}"
 
     def show_legs(self) -> str:
         return '\n'.join([ ll.show_position() for ll in self.legs.values() ])
@@ -156,15 +156,28 @@ class Body:
     @staticmethod
     def make_body(_type: str) -> Body:
         try:
-            fn = type_list[_type]
+            _type = type_list[_type]
         except KeyError:
             raise ValueError("unknown body type '{_type}'")
-        result = Body()
-        fn(result)
+        result = _type()
         return result
+
+class QuadBody(Body):
+
+    def __init__(self):
+        super(QuadBody, self).__init__()
+
+    def build(self) -> None:
+        for w in ('fl','fr', 'rl', 'rr'):
+            self.add_leg(w)
+        self.build_base()
+
+    def add_leg(self, which: str) -> Leg:
+        return self.add_leg_base(QuadLeg, which)
                 
 type_list = {
-    'quad' : Body.build_quad,
+    'none' : Body,
+    'quad' : QuadBody,
     }
 
             

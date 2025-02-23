@@ -1,3 +1,4 @@
+
 #coding:utf-8
 
 from __future__ import annotations
@@ -9,6 +10,7 @@ from dataclasses import dataclass
 from collections.abc import Callable
 from logger import Logger
 from servo import Servo
+from servo_action import *
 from params import Params
 from robot_platform import RobotPlatform
 
@@ -23,6 +25,7 @@ class CommandInterpreter:
     the_command: CommandInterpreter = None    #type: ignore[assignment]
 
     the_commands = (
+        CommandInfo('head', 'hea', 'set head position, 90=straight ahead, 180=down,0=up'),
         CommandInfo('height', 'hei', 'set height'),
         CommandInfo('help', 'h', 'get help'),
         CommandInfo('leg', 'l', 'set leg position explicitly: leg leg-name x y z'),
@@ -127,6 +130,12 @@ class CommandInterpreter:
     def do_quit(self) -> None:
         raise StopIteration()
 
+    def do_head(self) -> None:
+        self.check_args(1)
+        pos = self.get_float_arg(1)
+        with ServoActionList() as sa:
+            self.control.body.set_head_pos(pos, sa)
+
     def do_height(self) -> None:
         self.check_args(1)
         self.control.set_height(self.get_float_arg(1))
@@ -137,6 +146,7 @@ class CommandInterpreter:
                                            self.get_float_arg(2),
                                            self.get_float_arg(3),
                                            -abs(self.get_float_arg(4)))
+        print(self.control.body.get_leg(self.words[1]).show_position())
 
     def do_posture(self) -> None:
         self.check_args(1)
@@ -179,11 +189,11 @@ class CommandInterpreter:
         self.control.walk(dist, dir)
 
     def set_pause(self) -> None:
-        self.check_args(0, 1)
-        self.pause_mode = bool(self.get_float_arg(1)) if len(self.words) > 2 else True
+        self.check_args(1, 2)
+        self.pause_mode = bool(self.get_float_arg(2)) if len(self.words) > 2 else True
 
     def show_battery(self) -> None:
-        print(f"Battery level: {RootPlatform.get_battery_level():.2f} V")
+        print(f"Battery level: {RobotPlatform.get_battery_level():.2f} V")
 
     def show_legs(self) -> None:
         self.check_args(1)

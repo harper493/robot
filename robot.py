@@ -18,6 +18,7 @@ except ImportError :
 
 parameter_defaults = {
     "body_type" : "quad",
+    "head_type" : "simple",
     "servo_type" : "pwm",
     "clear_height" : "0.3",
     "default_step_height" : "0.5",
@@ -50,6 +51,7 @@ parameter_defaults = {
     "leg_rr_x" : "-90",
     "leg_rr_y" : "-50",
     "leg_rr_z" : "0",
+    "head_servo" : "15",
     "gait_default" : "fl,rr,fr,rl",
     "posture_stand" : "1.0 -1.0 2.5 0 0 0",
     "posture_relax" : "2.3 0.0 2.0 0 0 0",
@@ -82,7 +84,9 @@ def init() -> Control:
     Servo.set_servo_type(Params.get_str('servo_type'))
     body = Body.make_body(Params.get_str('body_type'))
     Servo.load_calibration(Params.get_str('calibration_filename'))   # must come AFTER body creation
-    return Control(body)
+    control = Control(body)
+    control.set_posture('relax')
+    return control
 
 if __name__ == '__main__':
     run(init())
