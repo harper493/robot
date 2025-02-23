@@ -8,6 +8,7 @@ from params import *
 from leg import *
 from logger import Logger
 from servo import Servo
+from servo_action import *
 from command import CommandInterpreter
 from robot_platform import RobotPlatform
 
@@ -20,13 +21,15 @@ parameter_defaults = {
     "body_type" : "quad",
     "head_type" : "simple",
     "servo_type" : "pwm",
-    "clear_height" : "0.3",
-    "default_step_height" : "0.5",
+    "clear_height" : "0.5",
+    "default_step_height" : "0.8",
     "default_height" : "2.5",
-    "default_speed" : "200.0",
+    "default_speed" : "10.0",
+    "max_servo_iteration" : "5",
     "femur_length" : "2",
     "tibia_length" : "2.3",
     "default_step_size" : "1",
+    "small_step_size" : "0.3",
     "leg_fl_servo_cox" : "4",
     "leg_fl_servo_femur" : "3",
     "leg_fl_servo_tibia" : "2",
@@ -57,6 +60,7 @@ parameter_defaults = {
     "posture_relax" : "2.3 0.0 2.0 0 0 0",
     "posture_high" : "1.0 -0.8 3.0 0 0 0",
     "posture_low" : "1.1 -1.2 2.1 0 0 0",
+    "posture_sleep" : "0.3 0.0 0.5 0 0 0 ",
     "calibration_filename" : "calib.txt"
     }
 
@@ -70,7 +74,7 @@ def run(control: Control) -> None:
             print('\n')
             break
         if cmd:
-            try:                     
+            try:
                 interpreter.execute(cmd)
             except StopIteration:
                 break
@@ -79,6 +83,7 @@ def run(control: Control) -> None:
 
 def init() -> Control:
     Params.load('parameters.txt', parameter_defaults)
+    Globals.init()
     Logger.init('log.txt')
     RobotPlatform.factory()
     Servo.set_servo_type(Params.get_str('servo_type'))
@@ -86,6 +91,8 @@ def init() -> Control:
     Servo.load_calibration(Params.get_str('calibration_filename'))   # must come AFTER body creation
     control = Control(body)
     control.set_posture('relax')
+    with ServoActionList() as actions:
+        body.head.goto_named('default', actions)
     return control
 
 if __name__ == '__main__':

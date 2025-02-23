@@ -32,6 +32,8 @@ class Body:
         self.cur_gait = self.default_gait
         self.step_iter = iter(self.cur_gait)
         self.height: float = Params.get('default_height')
+        self.spread = 0.0
+        self.stretch = 0.0
         self.prev_stride = 0.0
         self.build()
 

@@ -6,6 +6,7 @@ from collections import OrderedDict
 from logger import  Logger
 from servo import Servo
 from params import Params
+from globals import Globals
 import time
 
 @dataclass
@@ -15,8 +16,9 @@ class ServoAction:
 
 class ServoActionList:
 
-    def __init__(self, _max_iter: int=10):
-        self.max_iter, self.speed = _max_iter, Params.get('default_speed')
+    def __init__(self, speed = 0.0):
+        self.max_iter = Params.get('max_servo_iteration')
+        self.speed = speed or Globals.speed
         self.actions: dict[int,float] = OrderedDict()
 
     def __str__(self) -> str:
@@ -52,7 +54,7 @@ class ServoActionList:
                     pos = s.get_position() + (d / iterations)
                 s.set_angle(pos)
                 if self.speed:
-                    time.sleep(1.0 / self.speed)
+                    time.sleep(1.0 / (self.speed * 40))
         self.actions = {}
 
         

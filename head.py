@@ -15,6 +15,15 @@ from logger import Logger
 
 class Head:
 
+    head_positions = {
+        'default' : 90,
+        'ahead' : 90,
+        'up' : 45,
+        'highest' : 0,
+        'down' : 135,
+        'lowest' : 180,
+        }
+
     def __init__(self, servos: Iterable[int]):
         self.servos = [ s for s in servos ]
         for n, s in enumerate(self.servos):
@@ -26,6 +35,13 @@ class Head:
 
     def get_position(self) -> float:
         return self.position
+
+    def goto_named(self, where: str, actions: ServoActionList) -> None:
+        try:
+            angle = Head.head_positions[where]
+        except KeyError:
+            raise ValueError(f"unknown head position '{where}'")
+        self.goto(angle, actions)
 
     @staticmethod
     def make_head(_type: str, servos: Iterable[int]) -> Head:

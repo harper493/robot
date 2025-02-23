@@ -1,4 +1,3 @@
-
 #coding:utf-8
 
 from __future__ import annotations
@@ -98,11 +97,15 @@ class CommandInterpreter:
             raise ValueError(f"too many arguments for command")
 
     def get_float_arg(self, arg: int) -> float:
-        self.check_args(1, 1000)
+        self.check_args(1, arg)
         try:
             return float(self.words[arg])
         except ValueError:
             raise ValueError(f"expected number, not '{self.words[arg]}'")
+
+    def get_arg(self, arg: int) -> str:
+        self.check_args(1, arg)
+        return self.words[arg]
                 
     def do_help(self) -> None:
         self.check_args(0, 1)
@@ -132,9 +135,16 @@ class CommandInterpreter:
 
     def do_head(self) -> None:
         self.check_args(1)
-        pos = self.get_float_arg(1)
-        with ServoActionList() as sa:
-            self.control.body.set_head_pos(pos, sa)
+        pos: float|None = None
+        try:
+            pos = self.get_float_arg(1)
+        except ValueError:
+                name = self.get_arg(1)
+        with ServoActionList() as actions:
+            if pos is None:
+                self.control.body.head.goto_named(name, actions)
+            else:                
+                self.control.body.head.goto(pos, actions)
 
     def do_height(self) -> None:
         self.check_args(1)
@@ -142,7 +152,7 @@ class CommandInterpreter:
 
     def do_leg(self) -> None:
         self.check_args(4)
-        self.control.body.set_leg_position(self.words[1],
+        self.control.body.set_leg_positio<n(self.words[1],
                                            self.get_float_arg(2),
                                            self.get_float_arg(3),
                                            -abs(self.get_float_arg(4)))
