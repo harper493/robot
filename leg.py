@@ -75,10 +75,11 @@ class Leg:
         return result
 
     def get_toe_pos_2D(self, angles: LegAngles) -> Point2D:
-        knee_pos = Point2D.from_polar(self.femur, angles.femur).reflect_y()
-        alpha = angles.tibia - (90 - angles.femur)
-        toe_offset = Point2D.from_polar(self.tibia, 90 - alpha)
+        knee_pos = Point2D(-self.femur * dcos(angles.femur), self.femur * dsin(angles.femur))
+        alpha = angles.tibia - angles.femur
+        toe_offset = Point2D(self.tibia * dcos(alpha), self.tibia * dsin(alpha))
         return (knee_pos + toe_offset).reflect_x()
+
 
     def goto(self, target: Point, actions: ServoActionList) -> None:
         try:

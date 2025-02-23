@@ -10,7 +10,7 @@ from collections.abc import Callable
 from logger import Logger
 from servo import Servo
 from params import Params
-from platform import Platform
+from robot_platform import RobotPlatform
 
 @dataclass
 class CommandInfo:
@@ -183,7 +183,7 @@ class CommandInterpreter:
         self.pause_mode = bool(self.get_float_arg(1)) if len(self.words) > 2 else True
 
     def show_battery(self) -> None:
-        print(f"Battery level: {Platform.get_battery_level():.2f} V")
+        print(f"Battery level: {RootPlatform.get_battery_level():.2f} V")
 
     def show_legs(self) -> None:
         self.check_args(1)
@@ -191,7 +191,7 @@ class CommandInterpreter:
         print(self.control.body.show_legs())
 
     def show_platform(self) -> None:
-        print(Platform.get_platform_info())
+        print(RobotPlatform.get_platform_info())
 
     def show_parameters(self) -> None:
         self.check_args(1, 2)

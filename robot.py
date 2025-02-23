@@ -9,7 +9,7 @@ from leg import *
 from logger import Logger
 from servo import Servo
 from command import CommandInterpreter
-from platform import Platform
+from robot_platform import RobotPlatform
 
 try:
     import readline
@@ -78,7 +78,7 @@ def run(control: Control) -> None:
 def init() -> Control:
     Params.load('parameters.txt', parameter_defaults)
     Logger.init('log.txt')
-    Platform.factory()
+    RobotPlatform.factory()
     Servo.set_servo_type(Params.get_str('servo_type'))
     body = Body.make_body(Params.get_str('body_type'))
     Servo.load_calibration(Params.get_str('calibration_filename'))   # must come AFTER body creation
