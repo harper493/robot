@@ -10,7 +10,7 @@ class RobotPlatformBase:
         return 0
 
     def get_platform_info(self) -> str:
-        return 'RobotPlatform type: Software only running on Linux'
+        return 'Platform type: Software only running on Linux'
 
     def get_model_info(self) -> str:
         return ''
@@ -64,7 +64,7 @@ class RobotPlatformQuad(RobotPlatformRaspberryPi):
         return ADS7830().readAdc(0)/255 * 10
 
     def get_platform_info(self) -> str:
-        return f'RobotPlatform type: Freenove Quadraped running on {self.get_model_info()}'
+        return f'Platform type: Freenove Quadraped running on {self.get_model_info()}'
 
 platform_types = {
     "quad" : RobotPlatformQuad,
