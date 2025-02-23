@@ -4,36 +4,36 @@
 from __future__ import annotations
 from ADS7830 import ADS7830
 
-class PlatformBase:
+class RobotPlatformBase:
 
     def get_battery_level(self) -> float:
         return 0
 
     def get_platform_info(self) -> str:
-        return 'Platform type: Software only running on Linux'
+        return 'RobotPlatform type: Software only running on Linux'
 
     def get_model_info(self) -> str:
         return ''
 
-class Platform:
+class RobotPlatform:
 
-    the_platform: PlatformBase
+    the_platform: RobotPlatformBase
 
     @staticmethod
-    def factory(_type: str='') -> PlatformBase:
+    def factory(_type: str='') -> RobotPlatformBase:
         try:
-            Platform.the_platform = (platform_types[_type or Platform.get_type()])()
-            return Platform.the_platform
+            RobotPlatform.the_platform = (platform_types[_type or RobotPlatform.get_type()])()
+            return RobotPlatform.the_platform
         except KeyError:
             raise ValueError(f"unknown platform type '{_type}'")
 
     @staticmethod
     def get_battery_level() -> float:
-        return Platform.the_platform.get_battery_level()
+        return RobotPlatform.the_platform.get_battery_level()
 
     @staticmethod
     def get_platform_info() -> str:
-        return Platform.the_platform.get_platform_info()
+        return RobotPlatform.the_platform.get_platform_info()
 
 
     @staticmethod
@@ -49,7 +49,7 @@ class Platform:
             result = 'none'
         return result
 
-class PlatformRaspberryPi(PlatformBase):    
+class RobotPlatformRaspberryPi(RobotPlatformBase):    
 
     def get_model_info(self) -> str:
         try:
@@ -58,16 +58,16 @@ class PlatformRaspberryPi(PlatformBase):
         except:
             return ''
 
-class PlatformQuad(PlatformRaspberryPi):
+class RobotPlatformQuad(RobotPlatformRaspberryPi):
 
     def get_battery_level(self) -> float:
         return ADS7830().readAdc(0)/255 * 10
 
     def get_platform_info(self) -> str:
-        return f'Platform type: Freenove Quadraped running on {self.get_model_info()}'
+        return f'RobotPlatform type: Freenove Quadraped running on {self.get_model_info()}'
 
 platform_types = {
-    "quad" : PlatformQuad,
-    "none" : PlatformBase
+    "quad" : RobotPlatformQuad,
+    "none" : RobotPlatformBase
     }
         
