@@ -106,7 +106,7 @@ class Leg:
             case StepPhase.clear:
                 self.goto(self.start.replace_z(self.start.z() + self.clear_height), actions)
             case StepPhase.lift:
-                p1 = (self.start + self.this_step / 2).replace_z(self.start.z() - self.step_height)
+                p1 = (self.start + self.this_step / 2).replace_z(self.start.z() + self.step_height)
                 Logger.info(f'lift leg {self.which} p1 {p1} start {self.start} dest {self.dest}')
                 self.goto(p1, actions)
             case StepPhase.drop:

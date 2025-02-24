@@ -97,14 +97,14 @@ class CommandInterpreter:
             raise ValueError(f"too many arguments for command")
 
     def get_float_arg(self, arg: int) -> float:
-        self.check_args(1, arg)
+        self.check_args(1, arg+1)
         try:
             return float(self.words[arg])
         except ValueError:
             raise ValueError(f"expected number, not '{self.words[arg]}'")
 
     def get_arg(self, arg: int) -> str:
-        self.check_args(1, arg)
+        self.check_args(1, arg+1)
         return self.words[arg]
                 
     def do_help(self) -> None:

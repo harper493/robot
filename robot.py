@@ -22,7 +22,7 @@ parameter_defaults = {
     "head_type" : "simple",
     "servo_type" : "pwm",
     "clear_height" : "0.5",
-    "default_step_height" : "0.8",
+    "default_step_height" : "0.7",
     "default_height" : "2.5",
     "default_speed" : "10.0",
     "max_servo_iteration" : "5",
