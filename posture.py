@@ -6,13 +6,26 @@ from geometry import *
 class Posture:
 
     def __init__(self, config: str):
-        self.transform = Transform.from_string(config).reflect_z()
+        self.values: dict[str, Point] = {}
+        self.parse(config)
 
     def __str__(self) -> str:
         return str(self.transform)
 
-    def get(self) -> Transform:
-        return self.transform
+    def get(self, lname: str) -> Transform:
+        try:
+            return self.values[lname]
+        except KeyError:
+            try:
+                return self.values['all']
+            except KeyError:
+                return Transform()
 
-    def get_xlate(self) -> Point:
-        return self.transform.get_xlate()
+    def parse(self, text: str) -> None:
+        for leg_str in text.split(','):
+            leg_split = leg_str.split(':', 1)
+            if len(leg_split) > 1:
+                lname, tfm_str = leg_split[0].strip(), leg_split[1]
+            else:
+                lname, tfm_str = 'all', leg_str
+            self.values[lname] = Transform.from_string(tfm_str).reflect_z()

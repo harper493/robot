@@ -97,7 +97,7 @@ class CommandInterpreter:
             raise ValueError(f"too many arguments for command")
 
     def get_float_arg(self, arg: int) -> float:
-        self.check_args(1, arg+1)
+        #self.check_args(1, arg+1)
         try:
             return float(self.words[arg])
         except ValueError:
@@ -151,6 +151,7 @@ class CommandInterpreter:
         self.control.set_height(self.get_float_arg(1))
 
     def do_leg(self) -> None:
+        print(len(self.words), self.words)
         self.check_args(4)
         self.control.body.set_leg_position(self.words[1],
                                            self.get_float_arg(2),

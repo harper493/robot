@@ -407,12 +407,21 @@ class Transform:
 #
     @staticmethod
     def from_string(config: str) -> Transform:
-        try:
-            data = [ float(v) for v in config.split() ]
-            if len(data) != 6:
+        if '=' in config:
+            try:
+                d = { cc.split('=', 1)[0] : float(cc.split('=', 1)[1]) for cc in config.split() }
+                return Transform(**d)
+            except:
                 data = []
-        except ValueError:
-            data = []
+        else:
+            try:
+                data = [ float(v) for v in config.split() ]
+                if len(data) ==  3:
+                    data += [0, 0, 0]
+                elif len(data) != 6:
+                    data = []
+            except ValueError:
+                data = []
         if data:
             return Transform(x=data[0], y=data[1], z=data[2],
                              xrot=data[3], yrot=data[4], zrot=data[5])

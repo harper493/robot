@@ -61,7 +61,7 @@ class Body:
             raise ValueError(f"unknown posture '{pname}'")
         with ServoActionList() as actions:
             for ll in self.legs.values():
-                pos = self.posture.get_xlate()
+                pos = self.posture.get(ll.which).get_xlate()
                 ll.set_rest_position(pos)
                 ll.goto(pos, actions)
 
