@@ -152,7 +152,7 @@ class CommandInterpreter:
 
     def do_leg(self) -> None:
         self.check_args(4)
-        self.control.body.set_leg_positio<n(self.words[1],
+        self.control.body.set_leg_position(self.words[1],
                                            self.get_float_arg(2),
                                            self.get_float_arg(3),
                                            -abs(self.get_float_arg(4)))

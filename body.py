@@ -101,18 +101,19 @@ class Body:
     def set_head_pos(self, angle: float, actions: ServoActionList) -> None:
         self.head.goto(angle, actions)
     
-    def step(self, stride_tfm: Transform, height: float) -> None:
+    def step(self, stride: Transform, height: float) -> None:
         from command import CommandInterpreter
-        stride = stride_tfm.get_xlate()
+        Logger.info(f'body.step stride\n{stride}')
         lift_legs = [ self.legs[ll] for ll in next(self.step_iter) ]    #type: ignore[call-overload]
         other_legs = [ ll for ll in self.legs.values() if ll not in lift_legs ]
-        unstride = (-stride).replace_z(stride.z()) / (self.get_step_count() - 1)
-        dest = stride / 2
+        unstride = (-stride).replace_z(stride.z()).get_xlate() / ((self.get_step_count() - 1) * 2)
+        half_stride = stride.sqrt()
         Logger.info(f'starting step at {self.position}')
-        Logger.info(f'...stride {stride} unstride {unstride}')
+        Logger.info(f'...stride\n{stride}\nunstride {unstride}')
         with ServoActionList() as actions:
             for ll in lift_legs:
-                ll.start_step(dest + ll.rest_position, height)
+                step = (ll.position + ll.location) @ stride - ll.location - ll.position
+                ll.start_step(step, height)
             for ll in lift_legs:
                 ll.step(StepPhase.clear, actions)
         CommandInterpreter.the_command.pause()
@@ -132,7 +133,7 @@ class Body:
             for ll in lift_legs:
                 ll.step(StepPhase.pose, actions)
         CommandInterpreter.the_command.pause()
-        self.position = self.position + stride
+        self.position = self.position + (stride.get_xlate())
         Logger.info(f'body position {self.position}')
         for ll in self.legs.values():
             ll.end_step()

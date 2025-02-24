@@ -93,19 +93,20 @@ class Leg:
         actions.append(self.servo_ids.tibia, self.angles.tibia)
         self.position = target
 
-    def start_step(self, dest: Point, height: float) -> None:
+    def start_step(self, step: Point, step_height: float) -> None:
         self.start = self.position
-        self.height = height
-        self.dest = dest
+        self.step_height = step_height
+        self.this_step = step
+        self.dest = self.start + step
+        Logger.info(f'leg.start_step start {self.start} step {step} dest {self.dest}')
 
     def step(self, phase: StepPhase, actions: ServoActionList) -> None:
+        Logger.info(f'leg.step {phase=}')
         match phase:
             case StepPhase.clear:
                 self.goto(self.start.replace_z(self.start.z() + self.clear_height), actions)
             case StepPhase.lift:
-                p1 = (Line(self.start, self.dest)
-                      .bisect()
-                      .replace_z(self.start.z() + self.height))
+                p1 = (self.start + self.this_step / 2).replace_z(self.start.z() - self.step_height)
                 Logger.info(f'lift leg {self.which} p1 {p1} start {self.start} dest {self.dest}')
                 self.goto(p1, actions)
             case StepPhase.drop:

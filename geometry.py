@@ -356,7 +356,14 @@ class Transform:
         self.m[3][1] = p.y()
         self.m[3][2] = p.z()
         return self
-        
+#
+# square root
+#
+    def sqrt(self) -> Transform:
+        return Transform(scipy.linalg.sqrtm(self.m))
+
+    def power(self, pow: float) -> Transform:
+        return Transform(scipy.linalg.expm(scipy.linalg.logm(self.m) / pow))
 #
 # get whole translation
 #
