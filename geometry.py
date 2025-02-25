@@ -231,12 +231,16 @@ class Point:
 
 class Transform:
 
-    def __init__(self, other: None|np.ndarray=None, **kwargs: float):
+    def __init__(self, other: None|Point|np.ndarray=None, **kwargs: float):
         self.m: np.ndarray
         if other is None:
             self.m = np.identity(4)
-        else:
+        elif isinstance(other, Point):
+            self.m = np.array([[other.x(), 0, 0, 0], [0, other.y(), 0, 0], [0, 0, other.z(), 0], [0, 0, 0, 1]])
+        elif isinstance(other, np.ndarray):
             self.m = other
+        else:
+            raise TypeError(f'incorrect type {type(other)} in Transform.init')
         if kwargs:
             xlate = Point()
             for name, v in kwargs.items():
