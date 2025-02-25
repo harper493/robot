@@ -3,7 +3,7 @@
 from __future__ import annotations
 from geometry import *
 import numpy as np
-from typing import Self, Type, Iterable
+from typing import Self, Type, Iterable, Mapping
 from dtrig import *
 from math import *
 from dataclasses import dataclass
@@ -12,6 +12,8 @@ from params import Params
 from servo_action import *
 from servo import *
 from logger import Logger
+
+type_list: dict[str,Type] = { }        
 
 class Head:
 
@@ -46,10 +48,10 @@ class Head:
     @staticmethod
     def make_head(_type: str, servos: Iterable[int]) -> Head:
         try:
-            _type = type_list[_type]
+            c = type_list[_type]
         except KeyError:
             raise ValueError("unknown head type '{_type}'")
-        result = _type(servos)
+        result = c(servos)
         return result
 
 class SimpleHead(Head):

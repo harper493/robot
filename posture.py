@@ -10,16 +10,16 @@ class Posture:
         self.parse(config)
 
     def __str__(self) -> str:
-        return str(self.transform)
+        return ', '.join([ f'{n} : {str(p)[1:-1]}' for n, p in self.values.items() ])
 
-    def get(self, lname: str) -> Transform:
+    def get(self, lname: str) -> Point:
         try:
             return self.values[lname]
         except KeyError:
             try:
                 return self.values['all']
             except KeyError:
-                return Transform()
+                return Point()
 
     def parse(self, text: str) -> None:
         for leg_str in text.split(','):
@@ -28,4 +28,4 @@ class Posture:
                 lname, tfm_str = leg_split[0].strip(), leg_split[1]
             else:
                 lname, tfm_str = 'all', leg_str
-            self.values[lname] = Transform.from_string(tfm_str).reflect_z()
+            self.values[lname] = Transform.from_string(tfm_str).reflect_z().get_xlate()

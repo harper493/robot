@@ -18,6 +18,8 @@ import itertools
 from logger import Logger
 from collections import OrderedDict
 
+type_list: dict[str,Type] = { }    #type: ignore[no-redef]
+
 class Body:
 
     def __init__(self):
@@ -61,7 +63,7 @@ class Body:
             raise ValueError(f"unknown posture '{pname}'")
         with ServoActionList() as actions:
             for ll in self.legs.values():
-                pos = self.posture.get(ll.which).get_xlate()
+                pos = self.posture.get(ll.which)
                 ll.set_rest_position(pos)
                 ll.goto(pos, actions)
 
@@ -159,10 +161,10 @@ class Body:
     @staticmethod
     def make_body(_type: str) -> Body:
         try:
-            _type = type_list[_type]
+            c = type_list[_type]
         except KeyError:
             raise ValueError("unknown body type '{_type}'")
-        result = _type()
+        result = c()
         return result
 
 class QuadBody(Body):

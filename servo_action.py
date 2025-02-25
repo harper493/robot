@@ -1,6 +1,7 @@
 #coding:utf-8
 
 from __future__ import annotations
+from typing import Self, Type, Iterable
 from dataclasses import dataclass
 from collections import OrderedDict
 from logger import  Logger
@@ -19,12 +20,12 @@ class ServoActionList:
     def __init__(self, speed = 0.0):
         self.max_iter = Params.get('max_servo_iteration')
         self.speed = speed or Globals.speed
-        self.actions: dict[int,float] = OrderedDict()
+        self.actions: dict[int,float] = OrderedDict()    #type: ignore[annotation-unchecked]
 
     def __str__(self) -> str:
         return ', '.join([ f'{ch}: {round(a,1)}' for ch,a in self.actions.items() ])
 
-    def __enter__(self) -> ServoActionList:
+    def __enter__(self) -> Self:
         return self
 
     def __exit__(self, _type, value, traceback) -> None:

@@ -417,7 +417,7 @@ class Transform:
         if '=' in config:
             try:
                 d = { cc.split('=', 1)[0] : float(cc.split('=', 1)[1]) for cc in config.split() }
-                return Transform(**d)
+                return Transform(**d)    #type: ignore[arg-type]
             except:
                 data = []
         else:
