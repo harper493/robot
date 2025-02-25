@@ -236,7 +236,10 @@ class Transform:
         if other is None:
             self.m = np.identity(4)
         elif isinstance(other, Point):
-            self.m = np.array([[other.x(), 0, 0, 0], [0, other.y(), 0, 0], [0, 0, other.z(), 0], [0, 0, 0, 1]])
+            self.m = np.array([[1, 0, 0, 0],
+                               [0, 1, 0, 0],
+                               [0, 0, 1, 0],
+                               [other.x(), other.y(), other.z(), 1]])
         elif isinstance(other, np.ndarray):
             self.m = other
         else:
