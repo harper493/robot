@@ -85,9 +85,12 @@ class CommandInterpreter:
 
     def pause(self) -> bool:
         if self.pause_mode:
-            print('press return to continue: ', end='')
-            input()
-            print('\n')
+            print('press return to continue, q to stop: ', end='')
+            text = input()
+            if text=='':
+                print('')
+            elif text[0]=='q':
+                raise StopIteration()
         return self.pause_mode
 
     def check_args(self, minargs: int, maxargs: int = -1) -> None:
@@ -131,7 +134,7 @@ class CommandInterpreter:
             print(f"Sorry, no help available for '{self.words[1]}'")
 
     def do_quit(self) -> None:
-        raise StopIteration()
+        raise EOFError()
 
     def do_head(self) -> None:
         self.check_args(1)

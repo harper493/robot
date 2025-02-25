@@ -21,8 +21,8 @@ parameter_defaults = {
     "body_type" : "quad",
     "head_type" : "simple",
     "servo_type" : "pwm",
-    "clear_height" : "0.5",
-    "default_step_height" : "0.7",
+    "clear_height" : "0.7",
+    "default_step_height" : "0.9",
     "default_height" : "2.5",
     "default_speed" : "10.0",
     "max_servo_iteration" : "5",
@@ -56,7 +56,7 @@ parameter_defaults = {
     "leg_rr_z" : "0",
     "head_servo" : "15",
     "gait_default" : "fl,rr,fr,rl",
-    "posture_stand" : "1.0 -1.0 2.5",
+    "posture_stand" : "fl:1.8 -1.0 2.5, fr:1.8 -1.0 2.5, rl:0 -1 2.5, rr:0 -1 2.5",
     "posture_relax" : "2.3 0.0 2.0",
     "posture_high" : "1.0 -0.8 3.0",
     "posture_low" : "1.1 -1.2 2.1 0 0 0",
@@ -71,15 +71,19 @@ def run(control: Control) -> None:
         try:
             cmd = input()
         except:
-            print('\n')
+            print('')
             break
         if cmd:
             try:
                 interpreter.execute(cmd)
-            except StopIteration:
+            except EOFError:
                 break
             except ValueError as exc:
                 print("Error:", str(exc.args[0]))
+            except StopIteration:
+                pass
+        else:
+                print('')
 
 def init() -> Control:
     Params.load('parameters.txt', parameter_defaults)
