@@ -64,7 +64,7 @@ class ParamGroup:
         except ValueError:
             return value
 
-    def make_dict(self, prefix: str, _class: type):
+    def make_dict(self, prefix: str, _class: type) -> dict[str,type]:
         result = {}
         for name,value in self.values.items():
             nn = name.split('_')

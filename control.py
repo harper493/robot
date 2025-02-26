@@ -50,7 +50,7 @@ class Control:
         else:
             raise ValueError(f"invalid servo position '{value}'")
 
-    def walk(self, distance: float, dir: float, speed:float = 0.0) -> None:
+    def walk(self, distance: float, dir: float, turn: float, speed:float = 0.0) -> None:
         straight = (dir < 20) or (dir > 340) or (dir > 160 and dir < 200)
         step_size = self.step_size if straight else \
             min(self.step_size, Params.get('small_step_size'))

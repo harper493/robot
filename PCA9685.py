@@ -29,7 +29,7 @@ class PCA9685:
     try:
       self.bus = smbus2.SMBus(1)
     except PermissionError:
-      self.bus = None
+      self.bus = None    #type: ignore[assignment]
     self.address = address
     self.debug = debug
     self.write(self.__MODE1, 0x00)
