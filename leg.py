@@ -51,16 +51,16 @@ class Leg:
         self.femur, self.tibia = _femur, _tibia
         self.servo_ids = _servo_ids
         rev = (self.which[1]=='r')
-        self.servos = { ch : Servo.enroll((self.which + name[0]), ch, (not rev))
+        self.servos = { ch : Servo.enroll((self.which + name[0]), ch, ((not rev) ^ (name=='cox')))
                         for name,ch in self.servo_ids }
         self.position = Point()
         self.start = Point()
         self.angles = LegAngles()
         self.clear_height: float = Params.get("clear_height")
-        self.rest_position = _rest_position.reflect_y()
+        self.rest_position = _rest_position
 
     def set_rest_position(self, pos: Point) -> None:
-        self.rest_position = pos.reflect_y()
+        self.rest_position = pos
 
     def get_femur_tibia(self, toe_pos: Point2D) -> LegAngles:
         result = LegAngles()
@@ -98,7 +98,7 @@ class Leg:
         self.step_height = step_height
         self.this_step = step
         self.dest = self.start + step
-        Logger.info(f'leg.start_step {self.which} start {self.start} step {step} dest {self.dest}')
+        Logger.info(f'leg.start_step start {self.start} step {step} dest {self.dest}')
 
     def step(self, phase: StepPhase, actions: ServoActionList) -> None:
         Logger.info(f'leg.step {phase=}')
@@ -107,6 +107,7 @@ class Leg:
                 self.goto(self.start.replace_z(self.start.z() + self.clear_height), actions)
             case StepPhase.lift:
                 p1 = (self.start + self.this_step / 2).replace_z(self.start.z() + self.step_height)
+                Logger.info(f'lift leg {self.which} p1 {p1} start {self.start} dest {self.dest}')
                 self.goto(p1, actions)
             case StepPhase.drop:
                 self.goto((self.dest).replace_z(self.dest.z() + self.clear_height), actions)
@@ -139,7 +140,7 @@ class Leg:
                 return -1
 
     def show_position(self) -> str:
-        return f"Leg '{self.which}' position {str(self.position.reflect_y())[1:-1]} angles {self.angles}"
+        return f"Leg '{self.which}' position {str(self.position)[1:-1]} angles {self.angles}"
  
 class QuadLeg(Leg):
 
