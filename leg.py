@@ -98,7 +98,7 @@ class Leg:
         self.step_height = step_height
         self.this_step = step
         self.dest = self.start + step
-        Logger.info(f'leg.start_step start {self.start} step {step} dest {self.dest}')
+        Logger.info(f'leg.start_step {self.which} start {self.start} step {step} dest {self.dest}')
 
     def step(self, phase: StepPhase, actions: ServoActionList) -> None:
         Logger.info(f'leg.step {phase=}')
@@ -107,7 +107,6 @@ class Leg:
                 self.goto(self.start.replace_z(self.start.z() + self.clear_height), actions)
             case StepPhase.lift:
                 p1 = (self.start + self.this_step / 2).replace_z(self.start.z() + self.step_height)
-                Logger.info(f'lift leg {self.which} p1 {p1} start {self.start} dest {self.dest}')
                 self.goto(p1, actions)
             case StepPhase.drop:
                 self.goto((self.dest).replace_z(self.dest.z() + self.clear_height), actions)

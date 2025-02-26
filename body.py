@@ -112,7 +112,9 @@ class Body:
         Logger.info(f'...stride\n{stride}\nunstride {unstride}')
         with ServoActionList() as actions:
             for ll in lift_legs:
-                step = (ll.position + ll.location) @ stride - ll.location - ll.position
+                s1 = (ll.position + ll.location) @ stride
+                step = s1 - (ll.location + ll.position)
+                Logger.info(f'lift {ll.which} pos {ll.position} loc {ll.location} s1 {s1} s2 {ll.location @ stride} step {step}')
                 ll.start_step(step, height)
             for ll in lift_legs:
                 ll.step(StepPhase.clear, actions)
