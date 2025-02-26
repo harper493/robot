@@ -34,6 +34,8 @@ class Body:
         self.cur_gait = self.default_gait
         self.step_iter = iter(self.cur_gait)
         self.height: float = Params.get('default_height')
+        self.step_size: float = Params.get('default_step_size')
+        self.step_height: float = Params.get('default_step_height')
         self.spread = 0.0
         self.stretch = 0.0
         self.prev_stride = 0.0
@@ -142,6 +144,18 @@ class Body:
         for ll in self.legs.values():
             ll.end_step()
             Logger.info(f'leg {ll.which} toe position {ll.position} global {ll.get_global_position()}')
+
+    def walk(self, distance: float, dir: float, turn: float, speed:float = 0.0) -> None:
+        straight = (dir < 20) or (dir > 340) or (dir > 160 and dir < 200)
+        step_size = self.step_size if straight else \
+            min(self.step_size, Params.get('small_step_size'))
+        stride = Transform(Point(step_size, 0, 0) @ Transform(zrot=dir))
+        Logger.info(f'control.walk distance {distance} stride\n{stride}')
+        step_count = int(distance / step_size)
+        for s in range(step_count):
+            self.step(stride, self.step_height)
+        for s in range(self.get_step_count()):
+            self.step(Transform(), self.step_height)            
 
     def pause(self) -> None:
         from command import CommandInterpreter

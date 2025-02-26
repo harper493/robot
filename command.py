@@ -190,7 +190,7 @@ class CommandInterpreter:
         dist = self.get_float_arg(1)
         turn = self.get_float_arg(2)
         dir = self.get_float_arg(3) if len(self.words) > 3 else 0
-        self.control.walk(dist, dir, turn) # needs to be updated
+        self.control.body.walk(dist, dir, turn) # needs to be updated
 
     def do_verbose(self) -> None:
         self.check_args(0, 1)
@@ -200,7 +200,7 @@ class CommandInterpreter:
         self.check_args(1, 2)
         dist = self.get_float_arg(1)
         dir = self.get_float_arg(2) if len(self.words) > 2 else 0
-        self.control.walk(dist, dir, 0)
+        self.control.body.walk(dist, dir, 0)
 
     def set_pause(self) -> None:
         self.check_args(1, 2)
