@@ -50,8 +50,8 @@ class Leg:
         self.number, self.location, self.which = _number, _location, _which
         self.femur, self.tibia = _femur, _tibia
         self.servo_ids = _servo_ids
-        rev = (self.which[1]=='r')
-        self.servos = { ch : Servo.enroll((self.which + name[0]), ch, ((not rev) ^ (name=='cox')))
+        self.reverse = (self.which[1]=='r')
+        self.servos = { ch : Servo.enroll((self.which + name[0]), ch, ((not self.reverse) ^ (name=='cox')))
                         for name,ch in self.servo_ids }
         self.position = Point()
         self.start = Point()
@@ -138,6 +138,12 @@ class Leg:
                 return self.servo_ids.tibia
             case _:
                 return -1
+            
+    def get_global_position(self)-> Point:
+        return self.position.reflect_y() if self.reverse else self.position
+
+    def from_global_position(self, p: Point) -> Point:
+        return p.reflect_y() if self.reverse else p
 
     def show_position(self) -> str:
         return f"Leg '{self.which}' position {str(self.position)[1:-1]} angles {self.angles}"

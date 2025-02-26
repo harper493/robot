@@ -114,8 +114,8 @@ class Body:
         Logger.info(f'...stride\n{stride}\nunstride {unstride}')
         with ServoActionList() as actions:
             for ll in lift_legs:
-                s1 = (ll.position + ll.location) @ stride
-                step = s1 - (ll.location + ll.position)
+                s1 = (ll.get_global_position() + ll.location) @ stride
+                step = ll.from_global_position(s1 - (ll.location + ll.get_global_position()))
                 Logger.info(f'lift {ll.which} pos {ll.position} loc {ll.location} s1 {s1} s2 {ll.location @ stride} step {step}')
                 ll.start_step(step, height)
             for ll in lift_legs:
@@ -125,13 +125,13 @@ class Body:
             for ll in lift_legs:
                 ll.step(StepPhase.lift, actions)
             for ll in other_legs:
-                ll.move_by(unstride, actions)
+                ll.move_by(ll.from_global_position(unstride), actions)
         CommandInterpreter.the_command.pause()
         with ServoActionList() as actions:
             for ll in lift_legs:
                 ll.step(StepPhase.drop, actions)
             for ll in other_legs:
-                ll.move_by(unstride, actions)
+                ll.move_by(ll.from_global_position(unstride), actions)
         CommandInterpreter.the_command.pause()
         with ServoActionList() as actions:
             for ll in lift_legs:
@@ -141,7 +141,7 @@ class Body:
         Logger.info(f'body position {self.position}')
         for ll in self.legs.values():
             ll.end_step()
-            Logger.info(f'leg {ll.which} toe position {ll.position}')
+            Logger.info(f'leg {ll.which} toe position {ll.position} global {ll.get_global_position()}')
 
     def pause(self) -> None:
         from command import CommandInterpreter

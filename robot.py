@@ -29,7 +29,7 @@ parameter_defaults = {
     "femur_length" : "2",
     "tibia_length" : "2.3",
     "default_step_size" : "1",
-    "small_step_size" : "0.3",
+    "small_step_size" : "0.6",
     "leg_fl_servo_cox" : "4",
     "leg_fl_servo_femur" : "3",
     "leg_fl_servo_tibia" : "2",
