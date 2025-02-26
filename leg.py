@@ -51,16 +51,16 @@ class Leg:
         self.femur, self.tibia = _femur, _tibia
         self.servo_ids = _servo_ids
         rev = (self.which[1]=='r')
-        self.servos = { ch : Servo.enroll((self.which + name[0]), ch, ((not rev) ^ (name=='cox')))
+        self.servos = { ch : Servo.enroll((self.which + name[0]), ch, (not rev))
                         for name,ch in self.servo_ids }
         self.position = Point()
         self.start = Point()
         self.angles = LegAngles()
         self.clear_height: float = Params.get("clear_height")
-        self.rest_position = _rest_position
+        self.rest_position = _rest_position.reflect_y()
 
     def set_rest_position(self, pos: Point) -> None:
-        self.rest_position = pos
+        self.rest_position = pos.reflect_y()
 
     def get_femur_tibia(self, toe_pos: Point2D) -> LegAngles:
         result = LegAngles()
@@ -140,7 +140,7 @@ class Leg:
                 return -1
 
     def show_position(self) -> str:
-        return f"Leg '{self.which}' position {str(self.position)[1:-1]} angles {self.angles}"
+        return f"Leg '{self.which}' position {str(self.position.reflect_y())[1:-1]} angles {self.angles}"
  
 class QuadLeg(Leg):
 
