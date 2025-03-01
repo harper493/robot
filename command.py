@@ -34,6 +34,7 @@ class CommandInterpreter:
         CommandInfo('save', 'sav', 'save current position as calibration'),
         CommandInfo('servo', 'ser', 'modify servo position explicitly'),
         CommandInfo('set', 'set', 'modify parameter'),
+        CommandInfo('speed', 'sp', 'set movement speed, 0=no delays, default=10'),
         CommandInfo('show', 'sh', 'show something'),
         CommandInfo('turn', 't', 'walk while turning: turn distance angle [direction]'),
         CommandInfo('verbose', 'v', 'set verbosity level'),        
@@ -51,7 +52,6 @@ class CommandInterpreter:
 
     set_commands = (
         CommandInfo('pause', 'pa', 'enable or disable single-step mode'),
-        CommandInfo('speed', 'sp', 'set movement speed, 0=no delays, default=10'),
         )
 
     help_texts: dict[str,str] = {
@@ -187,6 +187,10 @@ class CommandInterpreter:
     def do_show(self) -> None:
         (self.find_keyword_fn(self.show_commands, self.words[1], 'show_'))(self)
 
+    def do_speed(self) -> None:
+        self.check_args(1)
+        Globals.set('speed', self.get_float_arg(1))
+
     def do_turn(self) -> None:
         self.check_args(2, 3)
         dist = self.get_float_arg(1)
@@ -207,9 +211,6 @@ class CommandInterpreter:
     def set_pause(self) -> None:
         self.check_args(1, 2)
         self.pause_mode = bool(self.get_float_arg(2)) if len(self.words) > 2 else True
-
-    def set_speed(self) -> None:
-        Globals.set('speed', self.get_float_arg(2))
 
     def show_battery(self) -> None:
         print(f"Battery level: {RobotPlatform.get_battery_level():.2f} V")
