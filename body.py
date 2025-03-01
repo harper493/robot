@@ -82,9 +82,6 @@ class Body:
         with ServoActionList() as actions:
             ll.goto(Point(x, y, z), actions)
         
-    def get_step_count(self) -> int:
-        return self.cur_gait.get_step_count()
-
     def get_servos(self, name: str) -> list[int]:
         if name=='h':
             return [ self.head_servo ]
@@ -105,21 +102,14 @@ class Body:
     def set_head_pos(self, angle: float, actions: ServoActionList) -> None:
         self.head.goto(angle, actions)
     
-    def step(self, stride: Transform, height: float) -> None:
+    def one_step(self, step: Point,
+                 unstride: Point,
+                 lift_legs: Iterable[Leg],
+                 other_legs: Iterable[Leg]) -> None:
         from command import CommandInterpreter
-        Logger.info(f'body.step stride\n{stride}')
-        lift_legs = [ self.legs[ll] for ll in next(self.step_iter) ]    #type: ignore[call-overload]
-        other_legs = [ ll for ll in self.legs.values() if ll not in lift_legs ]
-        unstride = (-stride).replace_z(stride.z()).get_xlate() / ((self.get_step_count() - 1) * 2)
-        half_stride = stride.sqrt()
-        Logger.info(f'starting step at {self.position}')
-        Logger.info(f'...stride\n{stride}\nunstride {unstride}')
         with ServoActionList() as actions:
             for ll in lift_legs:
-                s1 = (ll.get_global_position() + ll.location) @ stride
-                step = ll.from_global_position(s1 - (ll.location + ll.get_global_position()))
-                Logger.info(f'lift {ll.which} pos {ll.position} loc {ll.location} s1 {s1} s2 {ll.location @ stride} step {step}')
-                ll.start_step(step, height)
+                ll.start_step(step, self.height)
             for ll in lift_legs:
                 ll.step(StepPhase.clear, actions)
         CommandInterpreter.the_command.pause()
@@ -139,23 +129,37 @@ class Body:
             for ll in lift_legs:
                 ll.step(StepPhase.pose, actions)
         CommandInterpreter.the_command.pause()
-        self.position = self.position + (stride.get_xlate())
-        Logger.info(f'body position {self.position}')
-        for ll in self.legs.values():
-            ll.end_step()
-            Logger.info(f'leg {ll.which} toe position {ll.position} global {ll.get_global_position()}')
+        self.position = self.position + step
+        Logger.info(f'body.one_step final position {self.position}')
 
     def walk(self, distance: float, dir: float, turn: float, speed:float = 0.0) -> None:
         straight = (dir < 20) or (dir > 340) or (dir > 160 and dir < 200)
-        step_size = self.step_size if straight else \
-            min(self.step_size, Params.get('small_step_size'))
+        step_size = min(distance,
+                        self.step_size if straight else min(self.step_size, Params.get('small_step_size')))
         stride = Transform(Point(step_size, 0, 0) @ Transform(zrot=dir))
-        Logger.info(f'control.walk distance {distance} stride\n{stride}')
         step_count = int(distance / step_size)
+        Logger.info(f'body.walk {distance=} {dir=} {step_size=} stride {stride.get_xlate()} {step_count=}')
         for s in range(step_count):
-            self.step(stride, self.step_height)
-        for s in range(self.get_step_count()):
-            self.step(Transform(), self.step_height)            
+            lift_legs = [ self.legs[ll] for ll in next(self.step_iter) ]    #type: ignore[call-overload]
+            other_legs = [ ll for ll in self.legs.values() if ll not in lift_legs ]
+            unstride = (-stride).replace_z(stride.z()).get_xlate() / ((self.cur_gait.get_step_count() - 1) * 2)
+            for ll in lift_legs:
+                s1 = (ll.get_global_position() + ll.location) @ stride
+                step = ll.from_global_position(s1 - (ll.location + ll.get_global_position()))
+                self.one_step(step, unstride, lift_legs, other_legs)
+        Logger.info(f'body.walk end position {self.position} legs:\n{self.show_legs()}')
+        ll0 = lift_legs[0]
+        total_unstride = ll0.position - ll0.rest_position
+        one_unstride = total_unstride / len(other_legs)
+        remaining_unstride = total_unstride
+        for ll in sorted(other_legs, key=Leg.get_dist_from_rest, reverse=True):
+            remaining_unstride -= one_unstride
+            target = ll.rest_position + remaining_unstride
+            step = target - ll.position
+            others = [ lll for lll in self.legs.values() if lll is not ll ]
+            Logger.info(f"body '{ll.which}' rem unstr {remaining_unstride} target {target} step {step}")
+            self.one_step(step, -one_unstride / 2, [ll], others)
+        Logger.info(f'body.walk final position {self.position} legs:\n{self.show_legs()}')
 
     def pause(self) -> None:
         from command import CommandInterpreter
@@ -200,6 +204,3 @@ type_list = {
     'none' : Body,
     'quad' : QuadBody,
     }
-
-            
-                    

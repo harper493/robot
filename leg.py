@@ -12,6 +12,24 @@ from params import Params
 from servo_action import *
 from logger import Logger
 
+#
+# The Leg class (and subclasses) represents a single robot leg. It knows how
+# to do forward and reverse kinematics, and how to work its associated
+# servos.
+#
+# The start_step and step functions coordinate actions around a single
+# step, i.e. one or more legs mpove forard (i.e. in the desired direction
+# of travel) while the others slowly advance the body. The walk function
+# performs multple steps as necessary to achieve the desired trajectory.
+#
+# There is one ugly complication. Leg popsitions are expressed symmetrically.
+# In particular, the y axis is always positive for movement inwards, towards
+# the center. But... when computing trajectories, we need to use the absolute
+# position relative to the ground. The functions get_global_position
+# and from_global_position make the corresponding adjustments. It's ery
+# important to remember which variety to use.
+#
+
 @dataclass
 class LegAngles:
     cox: float = 0.0
@@ -57,7 +75,11 @@ class Leg:
         self.start = Point()
         self.angles = LegAngles()
         self.clear_height: float = Params.get("clear_height")
+        self.step_height: float = Params.get("default_step_height")
         self.rest_position = _rest_position
+
+    def __str__(self) -> str:
+        return f'{self.which} {self.position}'
 
     def set_rest_position(self, pos: Point) -> None:
         self.rest_position = pos
@@ -87,7 +109,7 @@ class Leg:
         except ValueError as exc:
             Logger.error(f"leg '{self.which}' target{target} ({exc})")
             raise exc
-        Logger.info(f"goto leg '{self.which}' target{target} angles {self.angles}")
+        #Logger.info(f"goto leg '{self.which}' target{target} angles {self.angles}")
         actions.append(self.servo_ids.cox, self.angles.cox)
         actions.append(self.servo_ids.femur, self.angles.femur)
         actions.append(self.servo_ids.tibia, self.angles.tibia)
@@ -98,16 +120,15 @@ class Leg:
         self.step_height = step_height
         self.this_step = step
         self.dest = self.start + step
-        Logger.info(f'leg.start_step start {self.start} step {step} dest {self.dest}')
+        Logger.info(f'leg.start_step \'{self.which}\' start {self.start} step {step} dest {self.dest}')
 
     def step(self, phase: StepPhase, actions: ServoActionList) -> None:
-        Logger.info(f'leg.step {phase=}')
         match phase:
             case StepPhase.clear:
                 self.goto(self.start.replace_z(self.start.z() + self.clear_height), actions)
             case StepPhase.lift:
-                p1 = (self.start + self.this_step / 2).replace_z(self.start.z() + self.step_height)
-                Logger.info(f'lift leg {self.which} p1 {p1} start {self.start} dest {self.dest}')
+                p1 = (self.start + self.this_step / 2).replace_z(self.step_height)
+                #Logger.info(f'lift leg {self.which} p1 {p1} start {self.start} dest {self.dest}')
                 self.goto(p1, actions)
             case StepPhase.drop:
                 self.goto((self.dest).replace_z(self.dest.z() + self.clear_height), actions)
@@ -119,7 +140,7 @@ class Leg:
         return self.position
 
     def move_by(self, delta: Point, actions: ServoActionList) -> None:
-        Logger.info(f"move_by leg '{self.which}' start {self.position} delta {delta}")
+        #Logger.info(f"move_by leg '{self.which}' start {self.position} delta {delta}")
         self.goto(self.position + delta, actions)
 
     def get_angles(self, toe_pos: Point) -> LegAngles:    # always overridden
@@ -138,6 +159,9 @@ class Leg:
                 return self.servo_ids.tibia
             case _:
                 return -1
+
+    def get_dist_from_rest(self) -> float:
+        return self.position.dist(self.rest_position)
             
     def get_global_position(self)-> Point:
         return self.position.reflect_y() if self.reverse else self.position

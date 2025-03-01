@@ -39,13 +39,13 @@ class ServoActionList:
         self.actions[chan] = angle
 
     def exec(self) -> None:
-        Logger.info(f'ServoAction actions {str(self)}')
+        #Logger.info(f'ServoAction actions {str(self)}')
         deltas = { chan:(angle - Servo.get(chan).get_position())
                    for chan,angle in self.actions.items() }
         max_delta = max([ abs(d) for d in deltas.values() ])
         iterations = int((max_delta + self.max_iter - 1) // self.max_iter)
         delta_str = ', '.join([ f'{ch}: {round(a,1)}' for ch,a in deltas.items() ])
-        Logger.info(f'ServoActon deltas:{delta_str} max delta {max_delta:.1f} iterations {iterations}')
+        #Logger.info(f'ServoActon deltas:{delta_str} max delta {max_delta:.1f} iterations {iterations}')
         for i in range(iterations):
             for chan,d in deltas.items():
                 s = Servo.get(chan)
