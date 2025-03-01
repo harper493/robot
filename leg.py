@@ -108,7 +108,7 @@ class Leg:
         except ValueError as exc:
             Logger.error(f"leg '{self.which}' target{target} ({exc})")
             raise exc
-        #Logger.info(f"goto leg '{self.which}' target{target} angles {self.angles}")
+        Logger.info(f"goto leg '{self.which}' target{target} angles {self.angles}")
         actions.append(self.servo_ids.cox, self.angles.cox)
         actions.append(self.servo_ids.femur, self.angles.femur)
         actions.append(self.servo_ids.tibia, self.angles.tibia)
@@ -126,7 +126,7 @@ class Leg:
             case StepPhase.clear:
                 self.goto(self.start.replace_z(self.start.z() + self.clear_height), actions)
             case StepPhase.lift:
-                p1 = (self.start + self.this_step / 2).replace_z(self.step_height)
+                p1 = (self.start + self.this_step / 2).replace_z(-self.step_height)
                 #Logger.info(f'lift leg {self.which} p1 {p1} start {self.start} dest {self.dest}')
                 self.goto(p1, actions)
             case StepPhase.drop:
