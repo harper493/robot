@@ -11,6 +11,7 @@ from logger import Logger
 from servo import Servo
 from servo_action import *
 from params import Params
+from globals import Globals
 from robot_platform import RobotPlatform
 
 @dataclass
@@ -50,6 +51,7 @@ class CommandInterpreter:
 
     set_commands = (
         CommandInfo('pause', 'pa', 'enable or disable single-step mode'),
+        CommandInfo('speed', 'sp', 'set movement speed, 0=no delays, default=10'),
         )
 
     help_texts: dict[str,str] = {
@@ -205,6 +207,9 @@ class CommandInterpreter:
     def set_pause(self) -> None:
         self.check_args(1, 2)
         self.pause_mode = bool(self.get_float_arg(2)) if len(self.words) > 2 else True
+
+    def set_speed(self) -> None:
+        Globals.set('speed', self.get_float_arg(2))
 
     def show_battery(self) -> None:
         print(f"Battery level: {RobotPlatform.get_battery_level():.2f} V")
