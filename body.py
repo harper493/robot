@@ -129,8 +129,8 @@ class Body:
             for ll in lift_legs:
                 ll.step(StepPhase.pose, actions)
         CommandInterpreter.the_command.pause()
-        self.position = self.position + step
-        Logger.info(f'body.one_step final position {self.position}')
+        self.position = self.position - unstride * 2
+        #Logger.info(f'body.one_step final position {self.position}')
 
     def walk(self, distance: float, dir: float, turn: float, speed:float = 0.0) -> None:
         straight = (dir < 20) or (dir > 340) or (dir > 160 and dir < 200)
@@ -149,13 +149,13 @@ class Body:
                 self.one_step(step, unstride, lift_legs, other_legs)
         Logger.info(f'body.walk end position {self.position} legs:\n{self.show_legs()}')
         ll0 = lift_legs[0]
-        total_unstride = ll0.position - ll0.rest_position
+        total_unstride = ll.from_global_position(ll0.position - ll0.rest_position)
         one_unstride = total_unstride / len(other_legs)
         remaining_unstride = total_unstride
         for ll in sorted(other_legs, key=Leg.get_dist_from_rest, reverse=True):
             remaining_unstride -= one_unstride
-            target = ll.rest_position + remaining_unstride
-            step = target - ll.position
+            target = ll.get_global_rest_position() + remaining_unstride
+            step = ll.from_global_position(target - ll.get_global_position())
             others = [ lll for lll in self.legs.values() if lll is not ll ]
             Logger.info(f"body '{ll.which}' rem unstr {remaining_unstride} target {target} step {step}")
             self.one_step(step, -one_unstride / 2, [ll], others)

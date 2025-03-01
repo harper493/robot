@@ -102,7 +102,6 @@ class Leg:
         toe_offset = Point2D(self.tibia * dcos(alpha), self.tibia * dsin(alpha))
         return (knee_pos + toe_offset).reflect_x()
 
-
     def goto(self, target: Point, actions: ServoActionList) -> None:
         try:
             self.angles = self.get_angles(target)
@@ -168,6 +167,9 @@ class Leg:
 
     def from_global_position(self, p: Point) -> Point:
         return p.reflect_y() if self.reverse else p
+
+    def get_global_rest_position(self) -> Point:
+        return self.from_global_position(self.rest_position)
 
     def show_position(self) -> str:
         return f"Leg '{self.which}' position {str(self.position)[1:-1]} angles {self.angles}"
