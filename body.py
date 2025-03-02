@@ -184,7 +184,8 @@ class Body:
                        else -self.stretch/2 if ll.which[0]=='r'
                        else 0)
             new_pos = Point(base_pos.x() + x_delta, base_pos.y() - self.spread/2, -self.height)
-            if new_pos != base_pos:
+            #print(f'{base_pos} {self.spread=} {self.stretch=} {new_pos}')
+            if new_pos != ll.position:
                 self.one_step(new_pos - ll.position, Point(), [ll], [])
 
     def pause(self) -> None:
