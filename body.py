@@ -16,15 +16,27 @@ from posture import Posture
 from gait import Gait
 import itertools
 from logger import Logger
+from robot_keyword import *
 from collections import OrderedDict
 
 type_list: dict[str,Type] = { }    #type: ignore[no-redef]
 
 class Body:
 
+    attitude_keywords = KeywordTable(
+        ('backward', 'b',''),
+        ('forward', 'f', ''),
+        ('height', 'h', ''),
+        ('left', 'l', ''),
+        ('pitch', 'p', ''),
+        ('right', 'r', ''),
+        ('roll', 'ro', ''),
+        ('yaw', 'y', ''),
+        )
+
     def __init__(self):
         self.position = Point()
-        self.attitude = Transform()
+        self.prev_attitude = self.attitude = Transform()
         self.absolute_position = Point()
         self.legs: dict[str, Leg] = {}
         self.head_servo = 0
@@ -83,8 +95,28 @@ class Body:
             ll.goto(Point(x, y, z), actions)
 
     def set_attitude(self, which: str, value: float) -> None:
-        pass
-    
+        self.prev_attitude = self.attitude
+        key = Body.attitude_keywords.find(which)
+        match key.name[0]:
+            case 'b':
+                self.attitude = self.attitude.replace_x(-value)
+            case 'f':
+                self.attitude = self.attitude.replace_x(value)
+            case 'h':
+                self.attitude = self.attitude.replace_z(value)
+            case 'l':
+                self.attitude = self.attitude.replace_y(value)
+            case 'p':
+                self.attitude = self.attitude @ Transform(yrot=value)
+            case 'r':
+                if key.name=='right': 
+                    self.attitude = self.attitude.replace_y(-value)
+                else:
+                    self.attitude = self.attitude @ Transform(xrot=value)
+            case 'y':
+                self.attitude = self.attitude @ Transform(zrot=value)
+        self.reposition_body()
+            
     def get_servos(self, name: str) -> list[int]:
         if name=='h':
             return [ self.head_servo ]
@@ -164,8 +196,8 @@ class Body:
             other_legs = [ ll for ll in self.legs.values() if ll not in lift_legs ]
             unstride = (-stride).replace_z(stride.z()).get_xlate() / ((self.cur_gait.get_step_count() - 1) * 2)
             for ll in lift_legs:
-                s1 = (ll.get_global_position() + ll.location) @ stride
-                step = ll.from_global_position(s1 - (ll.location + ll.get_global_position()))
+                s1 = (ll.get_global_position() + (ll.location @ self.attitude)) @ stride
+                step = ll.from_global_position(s1 - ((ll.location @ self.attitude) + ll.get_global_position()))
                 self.one_step(step, unstride, lift_legs, other_legs)
         Logger.info(f'body.walk end position {self.position} legs:\n{self.show_legs()}')
         ll0 = lift_legs[0]
@@ -180,6 +212,14 @@ class Body:
             Logger.info(f"body '{ll.which}' rem unstr {remaining_unstride} target {target} step {step}")
             self.one_step(step, -one_unstride / 2, [ll], others)
         Logger.info(f'body.walk final position {self.position} legs:\n{self.show_legs()}')
+
+    def reposition_body(self) -> None:
+        with ServoActionList() as actions:
+            for ll in self.legs.values():
+                loc_adjust = ll.location @ -self.attitude - ll.location @ -self.prev_attitude
+                new_pos = ll.from_global_position(loc_adjust) + ll.position
+                print(f'{ll.which} {ll.position} {loc_adjust} {new_pos}')
+                ll.goto(new_pos, actions)
 
     def reposition_feet(self) -> None:
         for ll in self.legs.values():
@@ -207,11 +247,22 @@ class Body:
         return f"{str(self.position)} Head angle: {self.head.get_position()}"
 
     def show_attitude(self) -> str:
-        xstr = 'forward' if self.attitude.x() >= 0 else 'backward'
-        ystr = 'left' if self.attitude.y() >= 0 else 'right'
+        if self.attitude.x() >= 0:
+            xstr = 'forward'
+            xval = self.attitude.x()
+        else:
+            xstr = 'backward'
+            xval = -self.attitude.x()
+        if self.attitude.y() >= 0:
+            ystr = 'left'
+            yval = self.attitude.y()
+        else:
+            ystr = 'right'
+            yval = -self.attitude.y()
+        angles = self.attitude.xlate(Point(0, 0, 0))
         return (f"Base posture: '{self.posture.name}' stretch {self.stretch:.2f} spread {self.spread:.2f}" +
-                f"\nAttitude: {xstr} {self.attitude.x():.1f} {ystr} {self.attitude.y():.1f} height {self.attitude.z():.1f}" +
-                f" yaw {self.attitude.zrot():.1f} pitch {self.attitude.yrot():.1f} roll {self.attitude.zrot():.1f}")
+                f"\nAttitude: {xstr} {xval:.1f} {ystr} {yval:.1f} height {self.attitude.z():.1f}" +
+                f" yaw {angles.zrot():.1f} pitch {angles.yrot():.1f} roll {angles.xrot():.1f}")
 
     def show_legs(self) -> str:
         return '\n'.join([ ll.show_position() for ll in self.legs.values() ])

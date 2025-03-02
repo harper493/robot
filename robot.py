@@ -97,6 +97,6 @@ def init() -> Body:
         body.head.goto_named('default', actions)
     return body
 
-if True or __name__ == '__main__':
+if __name__ == '__main__':
     run(init())
 

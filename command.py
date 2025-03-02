@@ -20,6 +20,7 @@ class CommandInterpreter:
     the_command: CommandInterpreter = None    #type: ignore[assignment]
 
     the_commands = KeywordTable(
+        ('attitude','att', 'set body attitude, \'help attitude\' for more info'),
         ('head', 'hea', 'set head position, 90=straight ahead, 180=down,0=up'),
         ('height', 'hei', 'set height'),
         ('help', 'h', 'get help'),
@@ -52,7 +53,11 @@ class CommandInterpreter:
         ('pause', 'pa', 'enable or disable single-step mode'),
         )
 
-    help_texts = KeywordTable()
+    help_texts = KeywordTable(
+        ('attitude', 'att', """\
+'attitude keyword value' where keyword is one of: backward, forward, height, left, pitch, right, roll, yaw\
+        """),
+        )
 
     def __init__(self, b: Body):
         self.body = b
@@ -98,6 +103,10 @@ class CommandInterpreter:
     def get_arg(self, arg: int) -> str:
         self.check_args(1, arg+1)
         return self.words[arg]
+
+    def do_attitude(self) -> None:
+        self.check_args(2)
+        self.body.set_attitude(self.get_arg(1), self.get_float_arg(2))
                 
     def do_help(self) -> None:
         self.check_args(0, 1)
