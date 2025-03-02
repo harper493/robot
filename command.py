@@ -55,7 +55,7 @@ class CommandInterpreter:
 
     help_texts = KeywordTable(
         ('attitude', 'att', """\
-'attitude keyword value' where keyword is one of: backward, forward, height, left, pitch, right, roll, yaw\
+'attitude keyword value' where keyword is one of: normal, backward, forward, height, left, pitch, right, roll, yaw\
         """),
         )
 

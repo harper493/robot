@@ -28,6 +28,7 @@ class Body:
         ('forward', 'f', ''),
         ('height', 'h', ''),
         ('left', 'l', ''),
+        ('normal', 'n', ''),
         ('pitch', 'p', ''),
         ('right', 'r', ''),
         ('roll', 'ro', ''),
@@ -105,12 +106,14 @@ class Body:
             case 'h':
                 self.attitude = self.attitude.replace_z(value)
             case 'l':
-                self.attitude = self.attitude.replace_y(value)
+                self.attitude = self.attitude.replace_y(-value)
+            case 'n':
+                self.attitude = Transform()
             case 'p':
                 self.attitude = self.attitude @ Transform(yrot=value)
             case 'r':
                 if key.name=='right': 
-                    self.attitude = self.attitude.replace_y(-value)
+                    self.attitude = self.attitude.replace_y(value)
                 else:
                     self.attitude = self.attitude @ Transform(xrot=value)
             case 'y':
@@ -216,9 +219,11 @@ class Body:
     def reposition_body(self) -> None:
         with ServoActionList() as actions:
             for ll in self.legs.values():
-                loc_adjust = ll.location @ -self.attitude - ll.location @ -self.prev_attitude
+                new_loc = ll.location @ -self.attitude
+                old_loc = ll.location @ -self.prev_attitude
+                loc_adjust =  new_loc - old_loc 
                 new_pos = ll.from_global_position(loc_adjust) + ll.position
-                print(f'{ll.which} {ll.position} {loc_adjust} {new_pos}')
+                print(f'{ll.which} {old_loc} {new_loc} {ll.position} {loc_adjust} {new_pos}')
                 ll.goto(new_pos, actions)
 
     def reposition_feet(self) -> None:
@@ -254,10 +259,10 @@ class Body:
             xstr = 'backward'
             xval = -self.attitude.x()
         if self.attitude.y() >= 0:
-            ystr = 'left'
+            ystr = 'right'
             yval = self.attitude.y()
         else:
-            ystr = 'right'
+            ystr = 'left'
             yval = -self.attitude.y()
         angles = self.attitude.xlate(Point(0, 0, 0))
         return (f"Base posture: '{self.posture.name}' stretch {self.stretch:.2f} spread {self.spread:.2f}" +
