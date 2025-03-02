@@ -2,7 +2,6 @@
 #coding:utf-8
 
 from __future__ import annotations
-from control import *
 from body import *
 from params import *
 from leg import *
@@ -64,8 +63,8 @@ parameter_defaults = {
     "calibration_filename" : "calib.txt"
     }
 
-def run(control: Control) -> None:
-    interpreter = CommandInterpreter(control)
+def run(body: Body) -> None:
+    interpreter = CommandInterpreter(body)
     while True:
         print('robot> ', end='')
         try:
@@ -83,9 +82,9 @@ def run(control: Control) -> None:
             except StopIteration:
                 pass
         else:
-                print('')
+            print('')
 
-def init() -> Control:
+def init() -> Body:
     Params.load('parameters.txt', parameter_defaults)
     Globals.init()
     Logger.init('log.txt')
@@ -93,11 +92,10 @@ def init() -> Control:
     Servo.set_servo_type(Params.get_str('servo_type'))
     body = Body.make_body(Params.get_str('body_type'))
     Servo.load_calibration(Params.get_str('calibration_filename'))   # must come AFTER body creation
-    control = Control(body)
-    control.set_posture('relax')
+    body.set_named_posture('relax')
     with ServoActionList() as actions:
         body.head.goto_named('default', actions)
-    return control
+    return body
 
 if True or __name__ == '__main__':
     run(init())

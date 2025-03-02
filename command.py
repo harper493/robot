@@ -4,7 +4,7 @@ from __future__ import annotations
 import time
 import re
 import json
-from control import Control
+from body import Body
 from dataclasses import dataclass
 from collections.abc import Callable
 from logger import Logger
@@ -57,8 +57,8 @@ class CommandInterpreter:
     help_texts: dict[str,str] = {
         }
 
-    def __init__(self, c: Control):
-        self.control = c
+    def __init__(self, b: Body):
+        self.body = b
         self.words: list[str] = []
         self.pause_mode = False
         CommandInterpreter.the_command = self
@@ -147,26 +147,26 @@ class CommandInterpreter:
                 name = self.get_arg(1)
         with ServoActionList() as actions:
             if pos is None:
-                self.control.body.head.goto_named(name, actions)
+                self.body.head.goto_named(name, actions)
             else:                
-                self.control.body.head.goto(pos, actions)
+                self.body.head.goto(pos, actions)
 
     def do_height(self) -> None:
         self.check_args(1)
-        self.control.set_height(self.get_float_arg(1))
+        self.body.set_height(self.get_float_arg(1))
 
     def do_leg(self) -> None:
         print(len(self.words), self.words)
         self.check_args(4)
-        self.control.body.set_leg_position(self.words[1],
+        self.body.set_leg_position(self.words[1],
                                            self.get_float_arg(2),
                                            self.get_float_arg(3),
                                            -abs(self.get_float_arg(4)))
-        print(self.control.body.get_leg(self.words[1]).show_position())
+        print(self.body.get_leg(self.words[1]).show_position())
 
     def do_posture(self) -> None:
         self.check_args(1)
-        self.control.set_posture(self.words[1])
+        self.body.set_named_posture(self.words[1])
 
     def do_save(self) -> None:
         self.check_args(0)
@@ -182,7 +182,22 @@ class CommandInterpreter:
             s, v = m.groups()    #type: ignore[union-attr]
         else:
             s, v = self.words[1], self.words[2]
-        self.control.set_servo(s, v)
+        m1 = re.match(r'(?:(?:([fr\*])([lr\*]?)([cft]))|(h))', s)
+        m2 = re.match(r'([+-]?)(\d+)', v)
+        if m1 and m2:
+            fr, lr, joint, head = m1.groups()
+            diff, angle = m2.groups()
+            if fr=='*' and not lr:
+                lr = '*'
+            if head is None:
+                sname = (fr+ lr + joint)
+            else:
+                sname = 'h'
+        elif m1 is None:
+            raise ValueError(f"invalid servo identifier '{s}'")
+        else:
+            raise ValueError(f"invalid servo position '{v}'")                
+        self.body.set_servos(s, v)
 
     def do_show(self) -> None:
         (self.find_keyword_fn(self.show_commands, self.words[1], 'show_'))(self)
@@ -196,7 +211,7 @@ class CommandInterpreter:
         dist = self.get_float_arg(1)
         turn = self.get_float_arg(2)
         dir = self.get_float_arg(3) if len(self.words) > 3 else 0
-        self.control.body.walk(dist, dir, turn) # needs to be updated
+        self.body.walk(dist, dir, turn) # needs to be updated
 
     def do_verbose(self) -> None:
         self.check_args(0, 1)
@@ -206,7 +221,7 @@ class CommandInterpreter:
         self.check_args(1, 2)
         dist = self.get_float_arg(1)
         dir = self.get_float_arg(2) if len(self.words) > 2 else 0
-        self.control.body.walk(dist, dir, 0)
+        self.body.walk(dist, dir, 0)
 
     def set_pause(self) -> None:
         self.check_args(1, 2)
@@ -218,7 +233,7 @@ class CommandInterpreter:
     def show_legs(self) -> None:
         self.check_args(1)
         self.show_position()
-        print(self.control.body.show_legs())
+        print(self.body.show_legs())
 
     def show_platform(self) -> None:
         print(RobotPlatform.get_platform_info())
@@ -232,7 +247,7 @@ class CommandInterpreter:
     
     def show_position(self) -> None:
         self.check_args(1)
-        print(f"Body position: {self.control.body.show_position()}")
+        print(f"Body position: {self.body.show_position()}")
 
     def show_servos(self) -> None:
         self.check_args(1)

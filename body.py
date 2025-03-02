@@ -69,7 +69,7 @@ class Body:
                 ll.set_rest_position(pos)
                 ll.goto(pos, actions)
 
-    def set_body_height(self, height: float) -> None:
+    def set_height(self, height: float) -> None:
         if height != self.height:
             with ServoActionList() as actions:
                 delta = Point(0, 0, -(height - self.height))
@@ -92,6 +92,15 @@ class Body:
                          and (name[1]=='*' or name[1]==ll.which[1])]
         else:
             return []
+
+    def set_servos(self, name: str, value: str) -> None:
+        v = float(value)
+        for s in self.get_servos(name):
+            servo = Servo.get(s)
+            if value[0]=='+' or value[0]=='-':
+                servo.adjust_angle(v)
+            else:
+                servo.set_angle(v)            
 
     def get_leg(self, name: str) -> Leg:
         try:
