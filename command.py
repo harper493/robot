@@ -13,51 +13,46 @@ from servo_action import *
 from params import Params
 from globals import Globals
 from robot_platform import RobotPlatform
-
-@dataclass
-class CommandInfo:
-    name: str
-    abbrev: str
-    help: str
+from robot_keyword import *
 
 class CommandInterpreter:
 
     the_command: CommandInterpreter = None    #type: ignore[assignment]
 
-    the_commands = (
-        CommandInfo('head', 'hea', 'set head position, 90=straight ahead, 180=down,0=up'),
-        CommandInfo('height', 'hei', 'set height'),
-        CommandInfo('help', 'h', 'get help'),
-        CommandInfo('leg', 'l', 'set leg position explicitly: leg leg-name x y z'),
-        CommandInfo('posture', 'p', 'set static posture'),
-        CommandInfo('quit', 'q', 'terminate program'),
-        CommandInfo('save', 'sav', 'save current position as calibration'),
-        CommandInfo('servo', 'ser', 'modify servo position explicitly'),
-        CommandInfo('set', 'set', 'modify parameter'),
-        CommandInfo('show', 'sh', 'show something'),
-        CommandInfo('speed', 'sp', 'set movement speed, 0=no delays, default=10'),
-        CommandInfo('spread', 'spr', 'set leg spread'),
-        CommandInfo('stretch', 'str', 'set leg stretch'),
-        CommandInfo('turn', 't', 'walk while turning: turn distance angle [direction]'),
-        CommandInfo('verbose', 'v', 'set verbosity level'),        
-        CommandInfo('walk', 'w', 'walk in straight line: walk distance [direction]'),
+    the_commands = KeywordTable(
+        ('head', 'hea', 'set head position, 90=straight ahead, 180=down,0=up'),
+        ('height', 'hei', 'set height'),
+        ('help', 'h', 'get help'),
+        ('leg', 'l', 'set leg position explicitly: leg leg-name x y z'),
+        ('posture', 'p', 'set static posture'),
+        ('quit', 'q', 'terminate program'),
+        ('save', 'sav', 'save current position as calibration'),
+        ('servo', 'ser', 'modify servo position explicitly'),
+        ('set', 'set', 'modify parameter'),
+        ('show', 'sh', 'show something'),
+        ('speed', 'sp', 'set movement speed, 0=no delays, default=10'),
+        ('spread', 'spr', 'set leg spread'),
+        ('stretch', 'str', 'set leg stretch'),
+        ('turn', 't', 'walk while turning: turn distance angle [direction]'),
+        ('verbose', 'v', 'set verbosity level'),        
+        ('walk', 'w', 'walk in straight line: walk distance [direction]'),
         )
 
-    show_commands = (
-        CommandInfo('battery', 'bat', 'show battery level'),
-        CommandInfo('legs', 'le', 'show leg and body positions'),
-        CommandInfo('parameters', 'par', 'show parameter values or just one selected parameter'),
-        CommandInfo('platform', 'pla', 'show hardware platform info'),
-        CommandInfo('position', 'po', 'show body position'),
-        CommandInfo('servos', 'se', 'show state of all servos'),
+    show_commands = KeywordTable(
+        ('attitude', 'att', 'show body attitude'),
+        ('battery', 'bat', 'show battery level'),
+        ('legs', 'le', 'show leg and body positions'),
+        ('parameters', 'par', 'show parameter values or just one selected parameter'),
+        ('platform', 'pla', 'show hardware platform info'),
+        ('position', 'po', 'show body position'),
+        ('servos', 'se', 'show state of all servos'),
     )
 
-    set_commands = (
-        CommandInfo('pause', 'pa', 'enable or disable single-step mode'),
+    set_commands = KeywordTable(
+        ('pause', 'pa', 'enable or disable single-step mode'),
         )
 
-    help_texts: dict[str,str] = {
-        }
+    help_texts = KeywordTable()
 
     def __init__(self, b: Body):
         self.body = b
@@ -65,16 +60,9 @@ class CommandInterpreter:
         self.pause_mode = False
         CommandInterpreter.the_command = self
 
-    def find_keyword(self, commands: tuple[CommandInfo, ...], cmd: str) -> CommandInfo :
-        for c in commands:
-            if c.name.startswith(cmd) and cmd.startswith(c.abbrev):
-                return c
-        else:
-            raise ValueError(f"unknown or ambiguous keyword '{cmd}'")
-
-    def find_keyword_fn(self, commands: tuple[CommandInfo, ...], cmd: str, fn_prefix: str) \
+    def find_keyword_fn(self, commands: KeywordTable, cmd: str, fn_prefix: str) \
         -> Callable[[CommandInterpreter], None] :
-        return getattr(CommandInterpreter, fn_prefix + self.find_keyword(commands, cmd).name)
+        return getattr(CommandInterpreter, fn_prefix + commands.find(cmd).name)
 
     def execute(self, line: str) -> None:
         self.words = line.lower().split()
@@ -83,9 +71,6 @@ class CommandInterpreter:
         except ValueError:
             raise ValueError(f"unknown or ambiguous command '{self.words[0]}'")
         (fn)(self)
-
-    def help(self, cmds: tuple[CommandInfo, ...]) -> str:
-        return '\n'.join([ f'{c.name:10} {c.help}' for c in cmds ])
 
     def pause(self) -> bool:
         if self.pause_mode:
@@ -119,21 +104,22 @@ class CommandInterpreter:
         cmds = None
         if len(self.words) > 1:
             key = self.words[1]
-            ht = CommandInterpreter.help_texts.get(key, None)
-            if ht:
-                print(ht)
+            ht = CommandInterpreter.help_texts.find(key, miss_ok=True)
+            if ht.name:
+                print(ht.help)
                 return
             else:
                 cmds = getattr(CommandInterpreter, key+'_commands', None)
-            if ht is None:
+            if cmds is None:
                 try:
-                    cmds = tuple([ self.find_keyword(self.the_commands, self.words[1]) ])
+                    print(CommandInterpreter.the_commands.find(key).help)
+                    return
                 except ValueError:
                     pass
         else:
             cmds = CommandInterpreter.the_commands
         if cmds:            
-            print(self.help(cmds))
+            print(cmds.help())
         else:
             print(f"Sorry, no help available for '{self.words[1]}'")
 
@@ -210,13 +196,11 @@ class CommandInterpreter:
 
     def do_spread(self) -> None:
         self.check_args(1)
-        self.get_float_arg(1)   # check it is a number
-        self.body.set_spread(self.get_arg(1)) # but pass as a string
+        self.body.set_spread(self.get_float_arg(1))
 
     def do_stretch(self) -> None:
         self.check_args(1)
-        self.get_float_arg(1)   # check it is a number
-        self.body.set_stretch(self.get_arg(1)) # but pass as a string
+        self.body.set_stretch(self.get_float_arg(1))
 
     def do_turn(self) -> None:
         self.check_args(2, 3)
@@ -238,6 +222,10 @@ class CommandInterpreter:
     def set_pause(self) -> None:
         self.check_args(1, 2)
         self.pause_mode = bool(self.get_float_arg(2)) if len(self.words) > 2 else True
+
+    def show_attitude(self) -> None:
+        self.check_args(1)
+        print(self.body.show_attitude())
 
     def show_battery(self) -> None:
         print(f"Battery level: {RobotPlatform.get_battery_level():.2f} V")

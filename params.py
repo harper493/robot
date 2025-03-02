@@ -69,7 +69,7 @@ class ParamGroup:
         for name,value in self.values.items():
             nn = name.split('_')
             if len(nn)==2 and nn[0]==prefix :
-                result[nn[1]] = _class(value)
+                result[nn[1]] = _class(nn[1], value)
         return result
 
 the_params = ParamGroup('', {})

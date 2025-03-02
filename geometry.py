@@ -194,6 +194,15 @@ class Point:
     def z(self) -> float:
         return self.p[2]
 
+    def xrot(self) -> float:
+        return datan2(-self.z(), self.y())
+
+    def yrot(self) -> float:
+        return datan2(self.z(), self.x())
+
+    def zrot(self) -> float:
+        return datan2(-self.y(), self.x())
+
     def replace_x(self, xx: float) -> Point:
         result = self.copy()
         result.p[0] = xx
@@ -255,11 +264,11 @@ class Transform:
                     case 'z':
                         xlate = xlate.replace_z(v)
                     case 'xrot':
-                        self._copy_rotate(self @ Transform.xrot(v))
+                        self._copy_rotate(self @ Transform.make_xrot(v))
                     case 'yrot':
-                        self._copy_rotate(self @ Transform.yrot(v))
+                        self._copy_rotate(self @ Transform.make_yrot(v))
                     case 'zrot':
-                        self._copy_rotate(self @ Transform.zrot(v))
+                        self._copy_rotate(self @ Transform.make_zrot(v))
                     case _:
                         raise NameError(f"unknown keyword arg '{name}' to Transform()")
             self.update_xlate(xlate)
@@ -389,23 +398,36 @@ class Transform:
         return self.m[3][2]
 
 #
-# xrot/yrot/zrot - create rotation in the corresponding axis
+# xrot/yrot/zrot - get effectve rotation in each of the three axes
+#
+
+    def xrot(self) -> float:
+        return (Point(0, 1, 0) @ self).xrot()
+
+    def yrot(self) -> float:
+        return (Point(1, 0, 0) @ self).yrot()
+
+    def zrot(self) -> float:
+        return (Point(1, 0, 0) @ self).zrot()
+
+#
+# make_xrot/yrot/zrot - create rotation in the corresponding axis
 #
 
     @staticmethod
-    def xrot(angle: float) :
+    def make_xrot(angle: float) -> Transform:
         c = dcos(angle)
         s = dsin(angle)
         return Transform(np.array([[1, 0, 0, 0], [0 , c, -s, 0], [0, s, c, 0], [0, 0, 0, 1]]))
 
     @staticmethod
-    def yrot(angle: float) :
+    def make_yrot(angle: float) -> Transform:
         c = dcos(angle)
         s = dsin(angle)
         return Transform(np.array([[c, 0, s, 0], [0 , 1, 0, 0], [-s, 0, c, 0], [0, 0, 0, 1]]))
         
     @staticmethod
-    def zrot(angle: float) :
+    def make_zrot(angle: float) -> Transform:
         c = dcos(angle)
         s = dsin(angle)
         return Transform(np.array([[c, -s, 0, 0], [s , c, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]))

@@ -30,6 +30,7 @@ class Body:
         self.head_servo = 0
         self.gaits: dict[str, Gait] = Params.make_dict('gait', Gait)
         self.postures: dict[str, Posture] = Params.make_dict('posture', Posture)
+        self.posture = self.postures['relax']
         self.default_gait = self.gaits.get('default', next(iter(self.gaits.values())))
         self.cur_gait = self.default_gait
         self.step_iter = iter(self.cur_gait)
@@ -80,7 +81,10 @@ class Body:
         ll = self.get_leg(name)
         with ServoActionList() as actions:
             ll.goto(Point(x, y, z), actions)
-        
+
+    def set_attitude(self, which: str, value: float) -> None:
+        pass
+    
     def get_servos(self, name: str) -> list[int]:
         if name=='h':
             return [ self.head_servo ]
@@ -101,12 +105,12 @@ class Body:
             else:
                 servo.set_angle(v)
 
-    def set_stretch(self, s: str) -> None:
-        self.stretch = float(s) + (self.stretch if s[0] in ('+', '-') else 0)
+    def set_stretch(self, s: float) -> None:
+        self.stretch = s
         self.reposition_feet()
 
-    def set_spread(self, s: str) -> None:
-        self.spread = float(s) + (self.spread if s[0] in ('+', '-') else 0)
+    def set_spread(self, s: float) -> None:
+        self.spread = s
         self.reposition_feet()
 
     def get_leg(self, name: str) -> Leg:
@@ -201,6 +205,13 @@ class Body:
 
     def show_position(self) -> str:
         return f"{str(self.position)} Head angle: {self.head.get_position()}"
+
+    def show_attitude(self) -> str:
+        xstr = 'forward' if self.attitude.x() >= 0 else 'backward'
+        ystr = 'left' if self.attitude.y() >= 0 else 'right'
+        return (f"Base posture: '{self.posture.name}' stretch {self.stretch:.2f} spread {self.spread:.2f}" +
+                f"\nAttitude: {xstr} {self.attitude.x():.1f} {ystr} {self.attitude.y():.1f} height {self.attitude.z():.1f}" +
+                f" yaw {self.attitude.zrot():.1f} pitch {self.attitude.yrot():.1f} roll {self.attitude.zrot():.1f}")
 
     def show_legs(self) -> str:
         return '\n'.join([ ll.show_position() for ll in self.legs.values() ])

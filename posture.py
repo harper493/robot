@@ -5,7 +5,8 @@ from geometry import *
 
 class Posture:
 
-    def __init__(self, config: str):
+    def __init__(self, name: str, config: str):
+        self.name = name
         self.values: dict[str, Point] = {}
         self.parse(config)
 

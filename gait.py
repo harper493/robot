@@ -5,7 +5,8 @@ import itertools
 
 class Gait:
 
-    def __init__(self, config: str):
+    def __init__(self, name: str, config: str):
+        self.name = name
         self.order = [ tuple([ ll for ll in ss.split('+') ]) for ss in config.split(',') ]
 
     def __str__(self) -> str:
