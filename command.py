@@ -34,8 +34,10 @@ class CommandInterpreter:
         CommandInfo('save', 'sav', 'save current position as calibration'),
         CommandInfo('servo', 'ser', 'modify servo position explicitly'),
         CommandInfo('set', 'set', 'modify parameter'),
-        CommandInfo('speed', 'sp', 'set movement speed, 0=no delays, default=10'),
         CommandInfo('show', 'sh', 'show something'),
+        CommandInfo('speed', 'sp', 'set movement speed, 0=no delays, default=10'),
+        CommandInfo('spread', 'spr', 'set leg spread'),
+        CommandInfo('stretch', 'str', 'set leg stretch'),
         CommandInfo('turn', 't', 'walk while turning: turn distance angle [direction]'),
         CommandInfo('verbose', 'v', 'set verbosity level'),        
         CommandInfo('walk', 'w', 'walk in straight line: walk distance [direction]'),
@@ -205,6 +207,16 @@ class CommandInterpreter:
     def do_speed(self) -> None:
         self.check_args(1)
         Globals.set('speed', self.get_float_arg(1))
+
+    def do_spread(self) -> None:
+        self.check_args(1)
+        self.get_float_arg(1)   # check it is a number
+        self.body.set_spread(self.get_arg(1)) # but pass as a string
+
+    def do_stretch(self) -> None:
+        self.check_args(1)
+        self.get_float_arg(1)   # check it is a number
+        self.body.set_stretch(self.get_arg(1)) # but pass as a string
 
     def do_turn(self) -> None:
         self.check_args(2, 3)

@@ -99,7 +99,15 @@ class Body:
             if value[0]=='+' or value[0]=='-':
                 servo.adjust_angle(v)
             else:
-                servo.set_angle(v)            
+                servo.set_angle(v)
+
+    def set_stretch(self, s: str) -> None:
+        self.stretch = float(s) + (self.stretch if s[0] in ('+', '-') else 0)
+        self.reposition_feet()
+
+    def set_spread(self, s: str) -> None:
+        self.spread = float(s) + (self.spread if s[0] in ('+', '-') else 0)
+        self.reposition_feet()
 
     def get_leg(self, name: str) -> Leg:
         try:
@@ -175,7 +183,7 @@ class Body:
             x_delta = (self.stretch/2 if ll.which[0]=='f'
                        else -self.stretch/2 if ll.which[0]=='r'
                        else 0)
-            new_pos = Point(base_pos.x() + x_delta, base_pos.y() - self.stretch/2, self.height)
+            new_pos = Point(base_pos.x() + x_delta, base_pos.y() - self.spread/2, -self.height)
             if new_pos != base_pos:
                 self.one_step(new_pos - ll.position, Point(), [ll], [])
 
