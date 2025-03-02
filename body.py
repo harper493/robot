@@ -38,7 +38,6 @@ class Body:
         self.step_height: float = Params.get('default_step_height')
         self.spread = 0.0
         self.stretch = 0.0
-        self.prev_stride = 0.0
         self.build()
 
     def add_leg_base(self, leg_type: Type, which: str) -> Leg:
@@ -118,7 +117,7 @@ class Body:
         from command import CommandInterpreter
         with ServoActionList() as actions:
             for ll in lift_legs:
-                ll.start_step(step, self.height)
+                ll.start_step(step, -self.height + self.step_height)
             for ll in lift_legs:
                 ll.step(StepPhase.clear, actions)
         CommandInterpreter.the_command.pause()
@@ -169,6 +168,16 @@ class Body:
             Logger.info(f"body '{ll.which}' rem unstr {remaining_unstride} target {target} step {step}")
             self.one_step(step, -one_unstride / 2, [ll], others)
         Logger.info(f'body.walk final position {self.position} legs:\n{self.show_legs()}')
+
+    def reposition_feet(self) -> None:
+        for ll in self.legs.values():
+            base_pos = self.posture.get(ll.which)
+            x_delta = (self.stretch/2 if ll.which[0]=='f'
+                       else -self.stretch/2 if ll.which[0]=='r'
+                       else 0)
+            new_pos = Point(base_pos.x() + x_delta, base_pos.y() - self.stretch/2, self.height)
+            if new_pos != base_pos:
+                self.one_step(new_pos - ll.position, Point(), [ll], [])
 
     def pause(self) -> None:
         from command import CommandInterpreter
