@@ -14,6 +14,7 @@ from params import Params
 from globals import Globals
 from robot_platform import RobotPlatform
 from robot_keyword import *
+import time
 
 class CommandInterpreter:
 
@@ -35,7 +36,8 @@ class CommandInterpreter:
         ('spread', 'spr', 'set leg spread'),
         ('stretch', 'str', 'set leg stretch'),
         ('turn', 't', 'walk while turning: turn distance angle [direction]'),
-        ('verbose', 'v', 'set verbosity level'),        
+        ('verbose', 'v', 'set verbosity level'),
+        ('wait', 'wait', 'wait specified time (seconds) (for scripts)'),
         ('walk', 'w', 'walk in straight line: walk distance [direction]'),
         )
 
@@ -73,9 +75,16 @@ class CommandInterpreter:
         line = line.strip()
         if line:
             if line[0]=='<':
-                with open(line[1:]) as f:
-                    for fline in f.readlines():
-                        self.execute(fline[:-1])
+                try:
+                    with open(line[1:]) as f:
+                        for fline in f.readlines():
+                            self.execute(fline[:-1])
+                except FileNotFoundError:
+                    raise ValueError(f"could not open file '{line[1:]}'")
+                except IOError:
+                    raise ValueError(f"error reading file '{line[1:]}'")
+                except:
+                    raise
             elif line[0]!='#':
                 self.words = line.lower().split()
                 try:
@@ -234,6 +243,10 @@ class CommandInterpreter:
         dist = self.get_float_arg(1)
         dir = self.get_float_arg(2) if len(self.words) > 2 else 0
         self.body.walk(dist, dir, 0)
+
+    def do_wait(self) -> None:
+        self.check_args(1)
+        time.sleep(self.get_float_arg(1))
 
     def set_pause(self) -> None:
         self.check_args(1, 2)

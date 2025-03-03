@@ -77,7 +77,7 @@ def run(body: Body) -> None:
                 interpreter.execute(cmd)
             except EOFError:
                 break
-            except ValueError as exc:
+            except (ValueError, IOError) as exc:
                 print("Error:", str(exc.args[0]))
             except StopIteration:
                 pass
