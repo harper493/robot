@@ -2,9 +2,12 @@
 *.txt
 #*
 *#
+.#*
 __pycache__
 .ipynb_checkpoints
 *~
 *.old
 *.new
+scripts
+*.scr
 .idea
