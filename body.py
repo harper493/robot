@@ -223,7 +223,7 @@ class Body:
                 old_loc = ll.location @ -self.prev_attitude
                 loc_adjust =  new_loc - old_loc 
                 new_pos = ll.from_global_position(loc_adjust) + ll.position
-                print(f'{ll.which} {old_loc} {new_loc} {ll.position} {loc_adjust} {new_pos}')
+                #print(f'{ll.which} {old_loc} {new_loc} {ll.position} {loc_adjust} {new_pos}')
                 ll.goto(new_pos, actions)
 
     def reposition_feet(self) -> None:
