@@ -70,12 +70,19 @@ class CommandInterpreter:
         return getattr(CommandInterpreter, fn_prefix + commands.find(cmd).name)
 
     def execute(self, line: str) -> None:
-        self.words = line.lower().split()
-        try:
-            fn = self.find_keyword_fn(CommandInterpreter.the_commands, self.words[0], 'do_')
-        except ValueError:
-            raise ValueError(f"unknown or ambiguous command '{self.words[0]}'")
-        (fn)(self)
+        line = line.strip()
+        if line:
+            if line[0]=='<':
+                with open(line[1:]) as f:
+                    for fline in f.readlines():
+                        self.execute(fline[:-1])
+            elif line[0]!='#':
+                self.words = line.lower().split()
+                try:
+                    fn = self.find_keyword_fn(CommandInterpreter.the_commands, self.words[0], 'do_')
+                except ValueError:
+                    raise ValueError(f"unknown or ambiguous command '{self.words[0]}'")
+                (fn)(self)
 
     def pause(self) -> bool:
         if self.pause_mode:
