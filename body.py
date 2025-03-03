@@ -110,14 +110,14 @@ class Body:
             case 'n':
                 self.attitude = Transform()
             case 'p':
-                self.attitude = self.attitude @ Transform(yrot=value)
+                self.attitude = self.attitude @ Transform(yrot=value - self.attitude.yrot())
             case 'r':
                 if key.name=='right': 
                     self.attitude = self.attitude.replace_y(value)
                 else:
-                    self.attitude = self.attitude @ Transform(xrot=value)
+                    self.attitude = self.attitude @ Transform(xrot=value - self.attitude.xrot())
             case 'y':
-                self.attitude = self.attitude @ Transform(zrot=value)
+                self.attitude = self.attitude @ Transform(zrot=value - self.attitude.zrot())
         self.reposition_body()
             
     def get_servos(self, name: str) -> list[int]:
