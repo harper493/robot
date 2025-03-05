@@ -107,6 +107,11 @@ class CommandInterpreter:
                 raise StopIteration()
         return self.pause_mode
 
+    def help(self, keywords: KeywordTable) -> None:
+        return '\n'.join([ str(ST(f'{k.name:12}', color='blue', style='italic') + ST(k.help, color='blue'))
+                           for k in keywords ])
+        
+
     def check_args(self, minargs: int, maxargs: int = -1) -> None:
         if len(self.words) < minargs + 1:
             raise ValueError(f"too few arguments for command")
@@ -148,7 +153,7 @@ class CommandInterpreter:
         else:
             cmds = CommandInterpreter.the_commands
         if cmds:            
-            print(ST(cmds.help(), color='blue'))
+            print(self.help(cmds))
         else:
             print(f"Sorry, no help available for '{self.words[1]}'")
 
