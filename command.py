@@ -163,9 +163,9 @@ class CommandInterpreter:
             print(f"Sorry, no help available for '{self.words[1]}'")
 
     def do_loop(self) -> None:
-        sel.check_args(1, 2)
-        count = int(get_float_arg(1))
-        id = len(self.words) > 1 ? int(get_float_args(2)) : 0
+        self.check_args(1, 2)
+        count = int(self.get_float_arg(1))
+        id =  int(self.get_float_arg(2)) if len(self.words) > 1 else 0
         self.loop_count[id] = count
         self.loop_commands[id] = []
 
