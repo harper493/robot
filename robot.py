@@ -78,7 +78,7 @@ def run(body: Body) -> None:
             except EOFError:
                 break
             except (ValueError, IOError) as exc:
-                print(ST("Error: " + str(exc.args[0]), color='red'))
+                print(ST("Error: ", color='red', style='bold') + ST(str(exc.args[0]), color='red'))
             except StopIteration:
                 pass
         else:

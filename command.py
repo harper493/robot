@@ -23,10 +23,12 @@ class CommandInterpreter:
 
     the_commands = KeywordTable(
         ('attitude','att', 'set body attitude, \'help attitude\' for more info'),
+        ('endloop', 'endloop', 'end loop for scripts'),
         ('head', 'hea', 'set head position, 90=straight ahead, 180=down,0=up'),
         ('height', 'hei', 'set height'),
         ('help', 'h', 'get help'),
         ('leg', 'l', 'set leg position explicitly: leg leg-name x y z'),
+        ('loop', 'loop', 'start loop for scripts'),
         ('posture', 'p', 'set static posture'),
         ('quit', 'q', 'terminate program'),
         ('save', 'sav', 'save current position as calibration'),
@@ -66,6 +68,8 @@ class CommandInterpreter:
         self.body = b
         self.words: list[str] = []
         self.pause_mode = False
+        self.loop_commands: dict[int, list[str]] = {}
+        self.loop_count: dict[int, int] = {}
         CommandInterpreter.the_command = self
 
     def find_keyword_fn(self, commands: KeywordTable, cmd: str, fn_prefix: str) \
@@ -78,6 +82,7 @@ class CommandInterpreter:
     def execute(self, line: str) -> None:
         line = line.strip()
         if line:
+            
             if line[0]=='<':
                 try:
                     with open(line[1:]) as f:
@@ -107,7 +112,7 @@ class CommandInterpreter:
                 raise StopIteration()
         return self.pause_mode
 
-    def help(self, keywords: KeywordTable) -> None:
+    def help(self, keywords: KeywordTable) -> str:
         return '\n'.join([ str(ST(f'{k.name:12}', color='blue', style='italic') + ST(k.help, color='blue'))
                            for k in keywords ])
         
@@ -157,6 +162,13 @@ class CommandInterpreter:
         else:
             print(f"Sorry, no help available for '{self.words[1]}'")
 
+    def do_loop(self) -> None:
+        sel.check_args(1, 2)
+        count = int(get_float_arg(1))
+        id = len(self.words) > 1 ? int(get_float_args(2)) : 0
+        self.loop_count[id] = count
+        self.loop_commands[id] = []
+
     def do_quit(self) -> None:
         raise EOFError()
 
@@ -178,7 +190,6 @@ class CommandInterpreter:
         self.body.set_height(self.get_float_arg(1))
 
     def do_leg(self) -> None:
-        self.output(len(self.words), self.words)
         self.check_args(4)
         self.body.set_leg_position(self.words[1],
                                            self.get_float_arg(2),
