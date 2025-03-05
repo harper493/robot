@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import datetime
 import os
+from styled_text import StyledText as ST
 
 use_console: bool = False
 the_file: _io.TextIOWrapper = None    #type: ignore[assignment, name-defined]
@@ -29,7 +30,7 @@ class Logger:
         the_file.write(f'{Logger.level_to_str(level)}: {text}\n')
         the_file.flush()
         if use_console or level >= Logger.WARN:
-            print(f'{Logger.level_to_str(level)}: {text}')
+            print(ST(f'{Logger.level_to_str(level)}: {text}', color='magenta'))
 
     @staticmethod
     def info(text: str) -> None:

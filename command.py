@@ -14,6 +14,7 @@ from params import Params
 from globals import Globals
 from robot_platform import RobotPlatform
 from robot_keyword import *
+from styled_text import StyledText as ST
 import time
 
 class CommandInterpreter:
@@ -70,6 +71,9 @@ class CommandInterpreter:
     def find_keyword_fn(self, commands: KeywordTable, cmd: str, fn_prefix: str) \
         -> Callable[[CommandInterpreter], None] :
         return getattr(CommandInterpreter, fn_prefix + commands.find(cmd).name)
+
+    def output(self, text: str) -> None:
+        print(ST(text, color='dark_green'))
 
     def execute(self, line: str) -> None:
         line = line.strip()
@@ -131,20 +135,20 @@ class CommandInterpreter:
             key = self.words[1]
             ht = CommandInterpreter.help_texts.find(key, miss_ok=True)
             if ht.name:
-                print(ht.help)
+                print(ST(ht.help, color='blue'))
                 return
             else:
                 cmds = getattr(CommandInterpreter, key+'_commands', None)
             if cmds is None:
                 try:
-                    print(CommandInterpreter.the_commands.find(key).help)
+                    print(ST(CommandInterpreter.the_commands.find(key).help, color='blue'))
                     return
                 except ValueError:
                     pass
         else:
             cmds = CommandInterpreter.the_commands
         if cmds:            
-            print(cmds.help())
+            print(ST(cmds.help(), color='blue'))
         else:
             print(f"Sorry, no help available for '{self.words[1]}'")
 
@@ -169,13 +173,13 @@ class CommandInterpreter:
         self.body.set_height(self.get_float_arg(1))
 
     def do_leg(self) -> None:
-        print(len(self.words), self.words)
+        self.output(len(self.words), self.words)
         self.check_args(4)
         self.body.set_leg_position(self.words[1],
                                            self.get_float_arg(2),
                                            self.get_float_arg(3),
                                            -abs(self.get_float_arg(4)))
-        print(self.body.get_leg(self.words[1]).show_position())
+        self.output(self.body.get_leg(self.words[1]).show_position())
 
     def do_posture(self) -> None:
         self.check_args(1)
@@ -254,32 +258,32 @@ class CommandInterpreter:
 
     def show_attitude(self) -> None:
         self.check_args(1)
-        print(self.body.show_attitude())
+        self.output(self.body.show_attitude())
 
     def show_battery(self) -> None:
-        print(f"Battery level: {RobotPlatform.get_battery_level():.2f} V")
+        self.output(f"Battery level: {RobotPlatform.get_battery_level():.2f} V")
 
     def show_legs(self) -> None:
         self.check_args(1)
         self.show_position()
-        print(self.body.show_legs())
+        self.output(self.body.show_legs())
 
     def show_platform(self) -> None:
-        print(RobotPlatform.get_platform_info())
+        self.output(RobotPlatform.get_platform_info())
 
     def show_parameters(self) -> None:
         self.check_args(1, 2)
         pname = '' if len(self.words) < 3 else self.words[2]
         for p in sorted([ pp[0] for pp in Params.enumerate() ]):
             if p==pname or not pname:
-                print(f"{p:20} {Params.get_str(p)}")
+                self.output(f"{p:20} {Params.get_str(p)}")
     
     def show_position(self) -> None:
         self.check_args(1)
-        print(f"Body position: {self.body.show_position()}")
+        self.output(f"Body position: {self.body.show_position()}")
 
     def show_servos(self) -> None:
         self.check_args(1)
-        print(Servo.show_servos())
+        self.output(Servo.show_servos())
 
         

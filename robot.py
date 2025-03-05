@@ -10,7 +10,7 @@ from servo import Servo
 from servo_action import *
 from command import CommandInterpreter
 from robot_platform import RobotPlatform
-
+from styled_text import StyledText as ST
 try:
     import readline
 except ImportError :
@@ -78,7 +78,7 @@ def run(body: Body) -> None:
             except EOFError:
                 break
             except (ValueError, IOError) as exc:
-                print("Error:", str(exc.args[0]))
+                print(ST("Error: " + str(exc.args[0]), color='red'))
             except StopIteration:
                 pass
         else:
