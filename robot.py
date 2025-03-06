@@ -27,7 +27,7 @@ parameter_defaults = {
     "max_servo_iteration" : "5",
     "femur_length" : "2",
     "tibia_length" : "2.3",
-    "default_step_size" : "1",
+    "default_step_size" : "0.8",
     "small_step_size" : "0.3",
     "leg_fl_servo_cox" : "4",
     "leg_fl_servo_femur" : "3",
@@ -54,13 +54,15 @@ parameter_defaults = {
     "leg_rr_y" : "-5.0",
     "leg_rr_z" : "0",
     "head_servo" : "15",
-    "gait_default" : "fl,rr,fr,rl",
-    "posture_stand" : "fl:1.8 -1.0 2.5, fr:1.8 -1.0 2.5, rl:0 -1 2.5, rr:0 -1 2.5",
+    "gait_default" : "fl,rl,rr,fr",
+    "posture_stand" : "fl:1.4 -1.0 2.5, fr:1.4 -1.0 2.5, rl:0.1 -1 2.5, rr:0.1 -1 2.5",
     "posture_relax" : "2.3 0.0 2.0",
     "posture_high" : "1.0 -0.8 3.0",
     "posture_low" : "1.1 -1.2 2.1 0 0 0",
     "posture_sleep" : "fl:x=4 z=0.3, fr:x=4 z=0.3, rl:x=0 z=0.3, rr:x=0 z=0.3",
-    "calibration_filename" : "calib.txt"
+    "calibration_filename" : "calib.txt",
+    "balance_lateral_offset" : "0.4",
+    "balance_long_offset" : "0.4",
     }
 
 def run(body: Body) -> None:

@@ -171,6 +171,21 @@ class Leg:
     def get_global_rest_position(self) -> Point:
         return self.from_global_position(self.rest_position)
 
+    def is_left(self) -> bool:
+        return self.which[1]=='l'
+
+    def is_right(self) -> bool:
+        return self.which[1]=='r'
+
+    def is_front(self) -> bool:
+        return self.which[0]=='f'
+
+    def is_rear(self) -> bool:
+        return self.which[0]=='r'
+
+    def is_center(self) -> bool:
+        return self.which[0]=='c'
+
     def show_position(self) -> str:
         return f"Leg '{self.which}' position {str(self.position)[1:-1]} angles {self.angles}"
  

@@ -18,6 +18,7 @@ import itertools
 from logger import Logger
 from robot_keyword import *
 from collections import OrderedDict
+import atexit
 
 type_list: dict[str,Type] = { }    #type: ignore[no-redef]
 
@@ -52,7 +53,9 @@ class Body:
         self.step_height: float = Params.get('default_step_height')
         self.spread = 0.0
         self.stretch = 0.0
+        self.auto_balance = False
         self.build()
+        atexit.register(Body.set_named_posture, self, 'relax')
 
     def add_leg_base(self, leg_type: Type, which: str) -> Leg:
         prefix = f'leg_{which}_'
@@ -89,6 +92,9 @@ class Body:
                 for ll in self.legs.values():
                     ll.move_by(delta, actions)
             self.height = height
+
+    def set_auto_balance(self, b: bool) -> None:
+        self.auto_balance = b
 
     def set_leg_position(self, name: str, x: float, y: float, z:float) -> None:
         ll = self.get_leg(name)
@@ -162,6 +168,8 @@ class Body:
                  lift_legs: Iterable[Leg],
                  other_legs: Iterable[Leg]) -> None:
         from command import CommandInterpreter
+        if self.auto_balance:
+            self.balance(lift_legs[0])
         with ServoActionList() as actions:
             for ll in lift_legs:
                 ll.start_step(step, -self.height + self.step_height)
@@ -188,6 +196,8 @@ class Body:
         #Logger.info(f'body.one_step final position {self.position}')
 
     def walk(self, distance: float, dir: float, turn: float, speed:float = 0.0) -> None:
+        if self.auto_balance:
+            self.set_attitude('n', 0)
         straight = (dir < 20) or (dir > 340) or (dir > 160 and dir < 200)
         step_size = min(distance,
                         self.step_size if straight else min(self.step_size, Params.get('small_step_size')))
@@ -236,6 +246,11 @@ class Body:
             #print(f'{base_pos} {self.spread=} {self.stretch=} {new_pos}')
             if new_pos != ll.position:
                 self.one_step(new_pos - ll.position, Point(), [ll], [])
+
+    def balance(self, leg: Leg) -> None:
+        self.set_attitude('r' if leg.is_left() else 'l', Params.get('balance_lateral_offset'))
+        self.set_attitude('b' if leg.is_front() else 'f', Params.get('balance_long_offset'))
+        self.reposition_body()
 
     def pause(self) -> None:
         from command import CommandInterpreter

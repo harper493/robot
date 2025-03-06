@@ -23,6 +23,7 @@ class CommandInterpreter:
 
     the_commands = KeywordTable(
         ('attitude','att', 'set body attitude, \'help attitude\' for more info'),
+        ('balance', 'bal', 'turn auto-balance on or off'),
         ('endloop', 'endloop', 'end loop for scripts'),
         ('head', 'hea', 'set head position, 90=straight ahead, 180=down,0=up'),
         ('height', 'hei', 'set height'),
@@ -137,6 +138,13 @@ class CommandInterpreter:
     def do_attitude(self) -> None:
         self.check_args(2)
         self.body.set_attitude(self.get_arg(1), self.get_float_arg(2))
+
+    def do_balance(self) -> None:
+        self.check_args(0, 1)
+        if len(self.words) > 1:
+            self.body.set_auto_balance(self.get_float_arg(1) > 0)
+        else:
+            self.body.set_auto_balance(True)
                 
     def do_help(self) -> None:
         self.check_args(0, 1)
