@@ -226,6 +226,10 @@ class Body:
             self.one_step(step, -one_unstride / 2, [ll], others)
         if self.auto_balance:
             self.set_attitude('n', 0)
+            b = self.auto_balance
+            self.auto_balance = False
+            self.reposition_feet()
+            self.auto_balance = b
         Logger.info(f'body.walk final position {self.position} legs:\n{self.show_legs()}')
 
     def reposition_body(self) -> None:
