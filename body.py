@@ -224,6 +224,8 @@ class Body:
             others = [ lll for lll in self.legs.values() if lll is not ll ]
             Logger.info(f"body '{ll.which}' rem unstr {remaining_unstride} target {target} step {step}")
             self.one_step(step, -one_unstride / 2, [ll], others)
+        if self.auto_balance:
+            self.set_attitude('n', 0)
         Logger.info(f'body.walk final position {self.position} legs:\n{self.show_legs()}')
 
     def reposition_body(self) -> None:

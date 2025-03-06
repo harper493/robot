@@ -55,7 +55,7 @@ parameter_defaults = {
     "leg_rr_z" : "0",
     "head_servo" : "15",
     "gait_default" : "fl,rl,rr,fr",
-    "posture_stand" : "fl:1.4 -1.0 2.5, fr:1.4 -1.0 2.5, rl:0.1 -1 2.5, rr:0.1 -1 2.5",
+    "posture_stand" : "fl:0.9 -1.0 2.5, fr:0.9 -1.0 2.5, rl:0.1 -1 2.5, rr:0.1 -1 2.5",
     "posture_relax" : "2.3 0.0 2.0",
     "posture_high" : "1.0 -0.8 3.0",
     "posture_low" : "1.1 -1.2 2.1 0 0 0",
