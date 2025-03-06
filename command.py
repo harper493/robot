@@ -69,8 +69,8 @@ class CommandInterpreter:
         self.body = b
         self.words: list[str] = []
         self.pause_mode = False
-        self.loop_commands: dict[int, list[str]] = {}
-        self.loop_count: dict[int, int] = {}
+        self.loop_commands: list[list[str]] = []
+        self.loop_counts: list[int] = []
         CommandInterpreter.the_command = self
 
     def find_keyword_fn(self, commands: KeywordTable, cmd: str, fn_prefix: str) \
@@ -80,10 +80,12 @@ class CommandInterpreter:
     def output(self, text: str) -> None:
         print(ST(text, color='dark_green'))
 
-    def execute(self, line: str) -> None:
+    def execute(self, line: str, looping: bool = False) -> None:
         line = line.strip()
         if line:
-            
+            if not looping:
+                for h in self.loop_commands:
+                    h.append(line)
             if line[0]=='<':
                 try:
                     with open(line[1:]) as f:
@@ -171,11 +173,24 @@ class CommandInterpreter:
             print(f"Sorry, no help available for '{self.words[1]}'")
 
     def do_loop(self) -> None:
-        self.check_args(1, 2)
+        self.check_args(1)
         count = int(self.get_float_arg(1))
-        id =  int(self.get_float_arg(2)) if len(self.words) > 1 else 0
-        self.loop_count[id] = count
-        self.loop_commands[id] = []
+        if count<1 or count>100:
+            raise ValueError(f'incorrect loop count {count}')
+        self.loop_counts.append(count)
+        self.loop_commands.append([])
+
+    def do_endloop(self) -> None:
+        if len(self.loop_counts)==0:
+            raise ValueError('endloop command without loop')
+        count = self.loop_counts[-1] - 1
+        self.loop_counts = self.loop_counts[:-1]
+        commands = self.loop_commands[-1][:-1]
+        self.loop_commands = self.loop_commands[:-1]
+        while count:
+            count -= 1
+            for c in commands:
+                self.execute(c, looping=True)
 
     def do_quit(self) -> None:
         raise EOFError()
