@@ -3,7 +3,7 @@
 from __future__ import annotations
 from geometry import *
 import numpy as np
-from typing import Self, Type
+from typing import Self, Type, Sequence
 from dtrig import *
 from math import *
 from dataclasses import dataclass
@@ -165,7 +165,7 @@ class Body:
     
     def one_step(self, step: Point,
                  unstride: Point,
-                 lift_legs: Iterable[Leg],
+                 lift_legs: Sequence[Leg],
                  other_legs: Iterable[Leg]) -> None:
         from command import CommandInterpreter
         if self.auto_balance:
