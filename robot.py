@@ -60,6 +60,7 @@ parameter_defaults = {
     "posture_high" : "1.0 -0.8 3.0",
     "posture_low" : "1.1 -1.2 2.1 0 0 0",
     "posture_sleep" : "fl:x=4 z=0.3, fr:x=4 z=0.3, rl:x=0 z=0.3, rr:x=0 z=0.3",
+    "posture_sit" : "fl:x=-2.9 y=-0.2 z=3, fr:x=-2.9 y=-0.2 z=3, rl:x=3.5 y=0 z=0.2, rr: x=3.5 y=0 z=0.2",
     "calibration_filename" : "calib.txt",
     "balance_lateral_offset" : "0.6",
     "balance_long_offset" : "0.0",
