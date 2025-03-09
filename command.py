@@ -32,12 +32,14 @@ class CommandInterpreter:
         ('loop', 'loop', 'start loop for scripts'),
         ('posture', 'p', 'set static posture'),
         ('quit', 'q', 'terminate program'),
+        ('relax', 'rel', 'adopt relax posture'),
         ('save', 'sav', 'save current position as calibration'),
         ('servo', 'ser', 'modify servo position explicitly'),
         ('set', 'set', 'modify parameter'),
         ('show', 'sh', 'show something'),
         ('speed', 'sp', 'set movement speed, 0=no delays, default=10'),
         ('spread', 'spr', 'set leg spread'),
+        ('stand', 'sta', 'adopt standing posture'),
         ('stretch', 'str', 'set leg stretch'),
         ('turn', 't', 'walk while turning: turn distance angle [direction]'),
         ('verbose', 'v', 'set verbosity level'),
@@ -224,6 +226,10 @@ class CommandInterpreter:
         self.check_args(1)
         self.body.set_named_posture(self.words[1])
 
+    def do_relax(self) -> None:
+        self.check_args(0)
+        self.body.set_named_posture('relax')
+
     def do_save(self) -> None:
         self.check_args(0)
         Servo.save_calibration(Params.get_str('calibration_filename'))
@@ -265,6 +271,10 @@ class CommandInterpreter:
     def do_spread(self) -> None:
         self.check_args(1)
         self.body.set_spread(self.get_float_arg(1))
+
+    def do_stand(self) -> None:
+        self.check_args(0)
+        self.body.set_named_posture('stand')
 
     def do_stretch(self) -> None:
         self.check_args(1)

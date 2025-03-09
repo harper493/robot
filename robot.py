@@ -61,8 +61,8 @@ parameter_defaults = {
     "posture_low" : "1.1 -1.2 2.1 0 0 0",
     "posture_sleep" : "fl:x=4 z=0.3, fr:x=4 z=0.3, rl:x=0 z=0.3, rr:x=0 z=0.3",
     "calibration_filename" : "calib.txt",
-    "balance_lateral_offset" : "0.4",
-    "balance_long_offset" : "0.4",
+    "balance_lateral_offset" : "0.6",
+    "balance_long_offset" : "0.0",
     }
 
 def run(body: Body) -> None:
