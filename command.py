@@ -178,8 +178,9 @@ class CommandInterpreter:
 
     def do_imu(self) -> None:
         self.check_args(0)
-        i = RobotPlatform.get_imu()
-        self.output(f'Pitch: {i.pitch:.2f} Roll: {i.roll:.2f} Yaw: {i.yaw:.2f}')
+        i = RobotPlatform.get_imu_angles()
+        p = RobotPlatform.get_imu_position()
+        self.output(f'Pitch: {i.pitch:.2f} Roll: {i.roll:.2f} Yaw: {i.yaw:.2f} Position: {str(p)[1:-1]}')
 
     def do_loop(self) -> None:
         self.check_args(1)
