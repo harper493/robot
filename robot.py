@@ -8,7 +8,6 @@ from leg import *
 from logger import Logger
 from servo import Servo
 from servo_action import *
-from robot_imu import Imu
 from command import CommandInterpreter
 from robot_platform import RobotPlatform
 from styled_text import StyledText as ST
@@ -87,13 +86,13 @@ def run(body: Body) -> None:
                 pass
         else:
             print('')
+    RobotPlatform.stop()        
 
 def init() -> Body:
     Params.load('parameters.txt', parameter_defaults)
     Globals.init()
     Logger.init('log.txt')
-    RobotPlatform.factory()
-    Imu.init()
+    RobotPlatform.init()
     Servo.set_servo_type(Params.get_str('servo_type'))
     body = Body.make_body(Params.get_str('body_type'))
     Servo.load_calibration(Params.get_str('calibration_filename'))   # must come AFTER body creation

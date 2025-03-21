@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 from ADS7830 import ADS7830
+from robot_imu import Imu, ImuData
 
 class RobotPlatformBase:
 
@@ -15,12 +16,18 @@ class RobotPlatformBase:
     def get_model_info(self) -> str:
         return ''
 
+    def get_imu(self) -> ImuData:
+        return ImuData()
+
+    def stop(self) -> None:
+        pass
+
 class RobotPlatform:
 
     the_platform: RobotPlatformBase
 
     @staticmethod
-    def factory(_type: str='') -> RobotPlatformBase:
+    def init(_type: str='') -> RobotPlatformBase:
         try:
             RobotPlatform.the_platform = (platform_types[_type or RobotPlatform.get_type()])()
             return RobotPlatform.the_platform
@@ -35,7 +42,6 @@ class RobotPlatform:
     def get_platform_info() -> str:
         return RobotPlatform.the_platform.get_platform_info()
 
-
     @staticmethod
     def get_type() -> str:
         try:
@@ -49,6 +55,14 @@ class RobotPlatform:
             result = 'none'
         return result
 
+    @staticmethod
+    def get_imu() -> ImuData:
+        return RobotPlatform.the_platform.get_imu()
+
+    @staticmethod
+    def stop() -> None:
+        return RobotPlatform.the_platform.stop()
+
 class RobotPlatformRaspberryPi(RobotPlatformBase):    
 
     def get_model_info(self) -> str:
@@ -60,11 +74,20 @@ class RobotPlatformRaspberryPi(RobotPlatformBase):
 
 class RobotPlatformQuad(RobotPlatformRaspberryPi):
 
+    def __init__(self):
+        Imu.init()
+
     def get_battery_level(self) -> float:
         return ADS7830().readAdc(0)/255 * 10
 
     def get_platform_info(self) -> str:
         return f'Platform type: Freenove Quadraped running on {self.get_model_info()}'
+
+    def get_imu(self) -> ImuData:
+        return Imu.get()
+
+    def stop(self) -> None:
+        Imu.stop()
 
 platform_types = {
     "quad" : RobotPlatformQuad,

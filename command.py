@@ -5,6 +5,7 @@ import time
 import re
 import json
 from body import Body
+from robot_platform import RobotPlatform
 from dataclasses import dataclass
 from collections.abc import Callable
 from logger import Logger
@@ -28,7 +29,7 @@ class CommandInterpreter:
         ('head', 'hea', 'set head position, 90=straight ahead, 180=down,0=up'),
         ('height', 'hei', 'set height'),
         ('help', 'h', 'get help'),
-        ('imu', 'i,u', 'show IMU data'),
+        ('imu', 'imu', 'show IMU data'),
         ('leg', 'l', 'set leg position explicitly: leg leg-name x y z'),
         ('loop', 'loop', 'start loop for scripts'),
         ('posture', 'p', 'set static posture'),
@@ -176,8 +177,9 @@ class CommandInterpreter:
             print(f"Sorry, no help available for '{self.words[1]}'")
 
     def do_imu(self) -> None:
-        i = Imu.get()
-        self.output(f'{Imu.get()}')
+        self.check_args(0)
+        i = RobotPlatform.get_imu()
+        self.output(f'Pitch: {i.pitch:.2f} Roll: {i.roll:.2f} Yaw: {i.yaw:.2f}')
 
     def do_loop(self) -> None:
         self.check_args(1)
