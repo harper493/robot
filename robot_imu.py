@@ -14,7 +14,7 @@ class ImuData:
 
 class Imu:
 
-    the_imu: Imu = None
+    the_imu: Imu = None    #type: ignore[assignment]
 
     def __init__(self, interval=0.1):
         Imu.the_imu = self

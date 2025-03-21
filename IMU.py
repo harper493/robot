@@ -3,9 +3,9 @@ import time
 import math
 from Kalman import *
 try:
-    from mpu6050 import mpu6050
+    from mpu6050 import mpu6050    #type: ignore[import-untyped]
 except ImportError:
-    from mpu6050 import MPU6050 as mnpu6050
+    from mpu6050 import MPU6050 as mnpu6050    #type: ignore[import-untyped]
     
 class IMU:
     def __init__(self):
@@ -13,17 +13,17 @@ class IMU:
         self.Ki = 0.002 
         self.halfT = 0.001 
 
-        self.q0 = 1
-        self.q1 = 0
-        self.q2 = 0
-        self.q3 = 0
+        self.q0 = 1.0
+        self.q1 = 0.0
+        self.q2 = 0.0
+        self.q3 = 0.0
 
         self.exInt = 0
         self.eyInt = 0
         self.ezInt = 0
-        self.pitch = 0
-        self.roll =0
-        self.yaw = 0
+        self.pitch = 0.0
+        self.roll =0.0
+        self.yaw = 0.0
         
         self.sensor = mpu6050(address=0x68)                    
         self.sensor.set_accel_range(mpu6050.ACCEL_RANGE_2G)   
@@ -40,13 +40,13 @@ class IMU:
         self.Error_value_accel_data,self.Error_value_gyro_data=self.average_filter()
     
     def average_filter(self):
-        sum_accel_x=0
-        sum_accel_y=0
-        sum_accel_z=0
+        sum_accel_x=0.0
+        sum_accel_y=0.0
+        sum_accel_z=0.0
         
-        sum_gyro_x=0
-        sum_gyro_y=0
-        sum_gyro_z=0
+        sum_gyro_x=0.0
+        sum_gyro_y=0.0
+        sum_gyro_z=0.0
         for i in range(100):
             accel_data = self.sensor.get_accel_data()   
             gyro_data = self.sensor.get_gyro_data()      
@@ -59,13 +59,13 @@ class IMU:
             sum_gyro_y+=gyro_data['y']
             sum_gyro_z+=gyro_data['z']
             
-        sum_accel_x/=100
-        sum_accel_y/=100
-        sum_accel_z/=100
+        sum_accel_x/=100.0
+        sum_accel_y/=100.0
+        sum_accel_z/=100.0
         
-        sum_gyro_x/=100
-        sum_gyro_y/=100
-        sum_gyro_z/=100
+        sum_gyro_x/=100.0
+        sum_gyro_y/=100.0
+        sum_gyro_z/=100.0
         
         accel_data['x']=sum_accel_x
         accel_data['y']=sum_accel_y
