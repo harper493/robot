@@ -1,5 +1,6 @@
 from IMU import IMU
 from threading import Thread
+from dataclasses import dataclass
 
 @dataclass
 class ImuData:
