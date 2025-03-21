@@ -2,7 +2,11 @@
 import time
 import math
 from Kalman import *
-from mpu6050 import mpu6050
+try:
+    from mpu6050 import mpu6050
+except ImportError:
+    from mpu6050 import MPU6050 as mnpu6050
+    
 class IMU:
     def __init__(self):
         self.Kp = 100 
