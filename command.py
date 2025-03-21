@@ -28,6 +28,7 @@ class CommandInterpreter:
         ('head', 'hea', 'set head position, 90=straight ahead, 180=down,0=up'),
         ('height', 'hei', 'set height'),
         ('help', 'h', 'get help'),
+        ('imu', 'i,u', 'show IMU data'),
         ('leg', 'l', 'set leg position explicitly: leg leg-name x y z'),
         ('loop', 'loop', 'start loop for scripts'),
         ('posture', 'p', 'set static posture'),
@@ -173,6 +174,10 @@ class CommandInterpreter:
             print(self.help(cmds))
         else:
             print(f"Sorry, no help available for '{self.words[1]}'")
+
+    def do_imu(self) -> None:
+        i = Imu.get()
+        self.output(f'{Imu.get()}')
 
     def do_loop(self) -> None:
         self.check_args(1)

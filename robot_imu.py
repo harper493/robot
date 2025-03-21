@@ -1,6 +1,12 @@
 from IMU import IMU
 from threading import Thread
 
+@dataclass
+class ImuData:
+    pitch: float
+    roll: float
+    yaw: float
+
 class Imu:
 
     the_imu: Imu = None
@@ -9,12 +15,12 @@ class Imu:
         self.interval = interval
         self.my_imu = IMU()
         self.my_thread = Thread(target=imu.run)
-        self.pitch, self.roll, self.yaw = 0.0, 0.0, 0.0
+        self.data = ImuData()
 
     @staticmethod
     def run():
         while True:
-            self.pitch, self.roll, self.yaw = my_imu.imuUpdate()
+            self.data = ImuData(*my_imu.imuUpdate())
             time.sleep(self.interval)
 
     @staticmethod
