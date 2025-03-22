@@ -76,9 +76,11 @@ class IMU:
         gyro_data['z']=sum_gyro_z
         
         return accel_data,gyro_data
+    
     def imuUpdate(self):
         accel_data = self.sensor.get_accel_data()    
-        gyro_data = self.sensor.get_gyro_data() 
+        gyro_data = self.sensor.get_gyro_data()
+
         ax=self.kalman_filter_AX.kalman(accel_data['x']-self.Error_value_accel_data['x'])
         ay=self.kalman_filter_AY.kalman(accel_data['y']-self.Error_value_accel_data['y'])
         az=self.kalman_filter_AZ.kalman(accel_data['z']-self.Error_value_accel_data['z'])

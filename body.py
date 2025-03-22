@@ -202,14 +202,15 @@ class Body:
         step_size = min(distance,
                         self.step_size if straight else min(self.step_size, Params.get('small_step_size')))
         stride = Transform(Point(step_size, 0, 0) @ Transform(zrot=dir))
-        step_count = int(distance / step_size)
+        half_stride = stride.sqrt()
+        step_count = 4 * int(distance / step_size)
         Logger.info(f'body.walk {distance=} {dir=} {step_size=} stride {stride.get_xlate()} {step_count=}')
         for s in range(step_count):
             lift_legs = [ self.legs[ll] for ll in next(self.step_iter) ]    #type: ignore[call-overload]
             other_legs = [ ll for ll in self.legs.values() if ll not in lift_legs ]
             unstride = (-stride).replace_z(stride.z()).get_xlate() / ((self.cur_gait.get_step_count() - 1) * 2)
             for ll in lift_legs:
-                s1 = (ll.get_global_position() + (ll.location @ self.attitude)) @ stride
+                s1 = (ll.get_global_rest_position() + (ll.location @ self.attitude)) @ half_stride
                 step = ll.from_global_position(s1 - ((ll.location @ self.attitude) + ll.get_global_position()))
                 self.one_step(step, unstride, lift_legs, other_legs)
         Logger.info(f'body.walk end position {self.position} legs:\n{self.show_legs()}')

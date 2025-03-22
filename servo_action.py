@@ -55,7 +55,7 @@ class ServoActionList:
                     pos = s.get_position() + (d / iterations)
                 s.set_angle(pos)
                 if self.speed:
-                    time.sleep(1.0 / (self.speed * 40))
+                    time.sleep(1.0 / (self.speed * 80))
         self.actions = {}
 
         
