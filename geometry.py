@@ -6,6 +6,7 @@ import scipy    #type: ignore[import-untyped,import]
 from numpy import linalg
 from dtrig import *
 from math import *
+from dataclasses import dataclass
 from logger import Logger
 
 SMALL = 1e-9
@@ -232,6 +233,44 @@ class Point:
         result = self.copy()
         result.p[2] = -result.p[1]
         return result
+
+#
+# Angles: represent the three roll/pitch/yaw angles
+#
+
+@dataclass
+class Angles:
+
+    pitch: float = 0.0
+    roll: float = 0.0
+    yaw: float = 0.0
+
+    def __add__(self, other: float|Angles) -> Angles:
+        if isinstance(other,float):
+            return Angles(self.roll + other, self.pitch + other, self.yaw + other)
+        else:
+            return Angles(self.roll + other.roll, self.pitch + other.pitch, self.yaw + other.yaw)
+
+    def __neg__(self) -> Angles:
+        return Angles(-self.roll, - self.pitch, -self.yaw)
+
+    def __sub__(self, other: float|Angles) -> Angles:
+        return self + (-other)
+
+    def __mul__(self, mult: float) -> Angles:
+        return Angles(self.roll * mult, self.pitch * mult, self.yaw * mult)
+        
+    def __truediv__(self, div: float) -> Angles:
+        return Angles(self.roll / div, self.pitch / div, self.yaw / div)
+    
+    def __eq__(self, other: Angles) -> bool:
+        return self.roll == other.roll and self.pitch == other.pitch and self.yaw == other.yaw
+
+    def __ne__(self, other: Angles) -> bool:
+        return not self == other
+
+    def __str__(self) -> str:
+        return f'roll: {self.roll:.1f} pitch: {self.pitch:.1f} yaw: {self.yaw:.1f}'
 
 #
 # Transform class - a matrix representing a 3D transformation consisting of

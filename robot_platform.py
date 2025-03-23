@@ -3,7 +3,8 @@
 
 from __future__ import annotations
 from ADS7830 import ADS7830
-from robot_imu import Imu, ImuAngles
+from geometry import *
+from robot_imu import Imu
 from geometry import *
 
 class RobotPlatformBase:
@@ -17,8 +18,8 @@ class RobotPlatformBase:
     def get_model_info(self) -> str:
         return ''
 
-    def get_imu_angles(self) -> ImuAngles:
-        return ImuAngles()
+    def get_imu_angles(self) -> Angles:
+        return Angles()
 
     def get_imu_position(self) -> Point:
         return Point()
@@ -60,7 +61,7 @@ class RobotPlatform:
         return result
 
     @staticmethod
-    def get_imu_angles() -> ImuAngles:
+    def get_imu_angles() -> Angles:
         return RobotPlatform.the_platform.get_imu_angles()
 
     @staticmethod
@@ -91,7 +92,7 @@ class RobotPlatformQuad(RobotPlatformRaspberryPi):
     def get_platform_info(self) -> str:
         return f'Platform type: Freenove Quadraped running on {self.get_model_info()}'
 
-    def get_imu_angles(self) -> ImuAngles:
+    def get_imu_angles(self) -> Angles:
         return Imu.get_angles()
 
     def get_imu_position(self) -> Point:
