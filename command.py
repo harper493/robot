@@ -122,7 +122,9 @@ class CommandInterpreter:
     def help(self, keywords: KeywordTable) -> str:
         return '\n'.join([ str(ST(f'{k.name:12}', color='blue', style='italic') + ST(k.help, color='blue'))
                            for k in keywords ])
-        
+
+    def arg_exists(self, arg: int) -> bool:
+        return len(self.words) > arg
 
     def check_args(self, minargs: int, maxargs: int = -1) -> None:
         if len(self.words) < minargs + 1:
@@ -137,9 +139,20 @@ class CommandInterpreter:
         except ValueError:
             raise ValueError(f"expected number, not '{self.words[arg]}'")
 
-    def get_arg(self, arg: int) -> str:
-        self.check_args(1, arg+1)
-        return self.words[arg]
+    def get_bool_arg(self, arg: int, true_if_omitted=True) -> bool:
+        a = self.get_arg(arg, '1' if true_if_omitted else '').lower()
+        if a=='1' or a.startswith('on') or a.startswith('t'):
+            return True
+        elif a=='0' or a.startswith('of') or a.startswith('f'):
+            return False
+        raise ValueError(f"expected bool value (on, off, true, false, 1, 0) not '{self.get_arg(arg)}'")
+
+    def get_arg(self, arg: int, dflt: str = '') -> str:
+        if dflt and not self.arg_exists(arg):
+            return dflt
+        else:
+            self.check_args(1, arg+1)
+            return self.words[arg]
 
     def do_attitude(self) -> None:
         self.check_args(2)
@@ -148,7 +161,7 @@ class CommandInterpreter:
     def do_balance(self) -> None:
         self.check_args(0, 1)
         if len(self.words) > 1:
-            self.body.set_auto_balance(self.get_float_arg(1) > 0)
+            self.body.set_auto_balance(self.get_bool_arg(1) > 0)
         else:
             self.body.set_auto_balance(True)
                 
@@ -297,7 +310,7 @@ class CommandInterpreter:
 
     def do_verbose(self) -> None:
         self.check_args(0, 1)
-        Logger.to_console(bool(self.get_float_arg(1)) if len(self.words) > 1 else True)
+        Logger.to_console(self.get_bool_arg(1))
 
     def do_walk(self) -> None:
         self.check_args(1, 2)
@@ -311,7 +324,7 @@ class CommandInterpreter:
 
     def set_pause(self) -> None:
         self.check_args(1, 2)
-        self.pause_mode = bool(self.get_float_arg(2)) if len(self.words) > 2 else True
+        self.pause_mode = self.get_bool_arg(2)
 
     def show_attitude(self) -> None:
         self.check_args(1)
