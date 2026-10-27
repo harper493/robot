@@ -69,6 +69,9 @@ class Point2D:
         c = self.clean()
         return f'(x={c.x():.3f} y={c.y():.3f})'
 
+    def __repr__(self) -> str:
+        return str(self)
+
     def __add__(self, other) -> Point2D:
         if isinstance(other, Point2D):
             return Point2D(np.add(self.p, other.p))
@@ -144,6 +147,9 @@ class Point:
     def __str__(self) -> str:
         c = self.clean()
         return f'(x={c.x():.3f} y={c.y():.3f} z={c.z():.3f})'
+
+    def __repr__(self) -> str:
+        return str(self)
 
     def __neg__(self) -> Point:
         return Point((-self.p))
@@ -272,6 +278,9 @@ class Angles:
     def __str__(self) -> str:
         return f'roll: {self.roll:.1f} pitch: {self.pitch:.1f} yaw: {self.yaw:.1f}'
 
+    def __repr__(self) -> str:
+        return str(self)
+
 #
 # Transform class - a matrix representing a 3D transformation consisting of
 # a 3D rotation followed by a translation
@@ -327,6 +336,9 @@ class Transform:
 
     def __str__(self) -> str:
         return str(self.clean().m)
+
+    def __repr__(self) -> str:
+        return str(self)
 
     def clean(self) -> Transform:
         return Transform(np.round(self.m, 3))
