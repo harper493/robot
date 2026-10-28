@@ -168,6 +168,9 @@ class Leg:
     def from_global_position(self, p: Point) -> Point:
         return p.reflect_y() if self.reverse else p
 
+    def to_global_position(self, p: Point) -> Point:
+        return p.reflect_y() if self.reverse else p
+
     def get_global_rest_position(self) -> Point:
         return self.from_global_position(self.rest_position)
 

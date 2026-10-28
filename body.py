@@ -102,7 +102,7 @@ class Body:
             ll.goto(Point(x, y, z), actions)
 
     def set_attitude(self, which: str, value: float) -> None:
-        self.prev_attitude = self.attitude
+        self.prev_attitude = self.attitude.copy()
         key = Body.attitude_keywords.find(which)
         match key.name[0]:
             case 'b':
@@ -124,6 +124,7 @@ class Body:
                     self.attitude = self.attitude @ Transform(xrot=value - self.attitude.xrot())
             case 'y':
                 self.attitude = self.attitude @ Transform(zrot=value - self.attitude.zrot())
+        Logger.info(f'set_attitude\n{self.attitude}')
         self.reposition_body()
             
     def get_servos(self, name: str) -> list[int]:
@@ -240,7 +241,8 @@ class Body:
                 old_loc = ll.location @ -self.prev_attitude
                 loc_adjust =  new_loc - old_loc 
                 new_pos = ll.from_global_position(loc_adjust) + ll.position
-                #print(f'{ll.which} {old_loc} {new_loc} {ll.position} {loc_adjust} {new_pos}')
+                Logger.info(f'reposition_body {ll.which} {self.attitude=} {self.prev_attitude=} {ll.location=} {old_loc=} {new_loc=} {ll.position=} {loc_adjust=} {new_pos=}')
+                ll.set_rest_position(new_pos)
                 ll.goto(new_pos, actions)
 
     def reposition_feet(self) -> None:
@@ -252,6 +254,7 @@ class Body:
             new_pos = Point(base_pos.x() + x_delta, base_pos.y() - self.spread/2, -self.height)
             #print(f'{base_pos} {self.spread=} {self.stretch=} {new_pos}')
             if new_pos != ll.position:
+                ll.set_rest_position(new_pos)
                 self.one_step(new_pos - ll.position, Point(), [ll], [])
 
     def balance(self, leg: Leg) -> None:
